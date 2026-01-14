@@ -21,7 +21,6 @@ app.add_middleware(
 create_all()
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
-app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 for r in (auth, invites, groups, students, shootings, exercises):
     app.include_router(r.router)
@@ -47,7 +46,7 @@ from .schemas import UserCreate
 def create_first_teacher():
     db: Session = SessionLocal()
     if db.query(User).first() is None:
-        create_user(db, UserCreate(username="Admin", password=" ", invite_code="TEACHER"), is_teacher=True, teacher_id=None)
+        create_user(db, UserCreate(username="Admin", password="admin", invite_code="TEACHER"), is_teacher=True, teacher_id=None)
     db.close()
 
 create_first_teacher()

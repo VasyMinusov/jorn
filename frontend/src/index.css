@@ -1,0 +1,68 @@
+/* Добавить в index.css или создать новый глобальный файл */
+:root {
+  --mobile-safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --mobile-safe-area-inset-top: env(safe-area-inset-top, 0px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Улучшение для touch-управления */
+button, 
+input[type="button"], 
+input[type="submit"],
+select {
+  touch-action: manipulation;
+  min-height: 44px; /* Минимальный размер для touch */
+  min-width: 44px;
+}
+
+/* Убираем синее выделение при тапе на iOS */
+input, 
+textarea, 
+button, 
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Улучшение скролла на iOS */
+.scrollable {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Адаптивные шрифты */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+/* Скрываем скроллбар на мобильных */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Поддержка темной темы */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #111827;
+    color: #f9fafb;
+  }
+}

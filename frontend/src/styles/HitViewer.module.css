@@ -1,0 +1,441 @@
+/* HitViewer.module.css */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(4px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow: auto;
+  animation: fadeIn .3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalBox {
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  width: 95vw;
+  height: 95vh;
+  max-width: 1400px;
+  max-height: 900px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp .4s cubic-bezier(.175,.885,.32,1.275);
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(40px) scale(.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg,var(--text),#334155);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.closeBtn {
+  width: var(--thumb);
+  height: var(--thumb);
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  transition: .2s;
+}
+
+.closeBtn:active {
+  transform: scale(.9);
+}
+
+.threeColumnLayout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.leftColumn {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem;
+}
+
+.centerColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  min-width: 0;
+  background: var(--panel);
+}
+
+.rightColumn {
+  flex: 0 0 320px;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  padding: 1.5rem;
+}
+
+.targetContainer {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.targetCanvas,
+.heatCanvas,
+.centerCanvas,
+.dotsCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.shootingsHeader {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.shootingsTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.shootingsCount {
+  background: var(--blue);
+  color: #fff;
+  padding: .125rem .5rem;
+  border-radius: 12px;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.activeCount {
+  margin-left: auto;
+  font-size: .875rem;
+  color: var(--text2);
+  background: #e7f5ff;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.shootingsList {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding-right: .5rem;
+}
+
+.shootingItem {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.shootingItem:active {
+  transform: scale(.98);
+}
+
+.shootingItem.selected {
+  border-color: var(--blue);
+  background: #eff6ff;
+}
+
+.studentName {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.itemStats {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-top: .25rem;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .75rem;
+  background: var(--bg);
+  padding: .25rem .5rem;
+  border-radius: 8px;
+  color: var(--text2);
+}
+
+.widgetCard {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.widgetTitle {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+}
+
+.sliderGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sliderControl {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.sliderLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: .875rem;
+  color: var(--text2);
+}
+
+.sliderValue {
+  background: var(--bg);
+  padding: .25rem .5rem;
+  border-radius: 10px;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+input[type=range] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  background: linear-gradient(90deg,var(--blue),#8b5cf6);
+  border-radius: 3px;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--blue);
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
+
+.actionsFooter {
+  display: flex;
+  gap: .75rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.selectAllBtn,
+.exportBtn {
+  flex: 1;
+  padding: .75rem;
+  border-radius: 10px;
+  font-size: .875rem;
+  font-weight: 500;
+  transition: .2s;
+}
+
+.exportBtn {
+  background: linear-gradient(135deg,var(--green),#059669);
+  color: #fff;
+}
+
+.exportBtn:active {
+  transform: translateY(2px);
+}
+
+.selectAllBtn {
+  background: var(--bg);
+  color: var(--text2);
+}
+
+.selectAllBtn:active {
+  background: var(--border);
+}
+
+.emptyShootings {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--text2);
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: .5;
+}
+
+.emptyText {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 .5rem 0;
+}
+
+.emptyHint {
+  font-size: .875rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.inactive {
+  opacity: .6;
+  background-color: var(--bg);
+}
+
+.inactive:hover {
+  opacity: .8;
+  background-color: var(--border);
+}
+
+.inactiveBadge {
+  background-color: var(--border);
+  color: var(--text2);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: .75rem;
+  margin-left: 8px;
+}
+
+.groupTag {
+  font-size: .75rem;
+  color: #0369a1;
+  background: #e0f2fe;
+  padding: .25rem .75rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.targetInfo {
+  text-align: center;
+  margin-top: 10px;
+  color: var(--text2);
+  font-size: .875rem;
+  background: var(--bg);
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+@media (max-width: 767px) {
+  .overlay {
+    align-items: flex-start;
+    padding: 0;
+  }
+  .modalBox {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+  }
+  .threeColumnLayout {
+    flex-direction: column;
+    height: auto;
+  }
+  .leftColumn,
+  .rightColumn {
+    flex: 0 0 auto;
+    width: 100%;
+    max-height: 30vh;
+    border: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .centerColumn {
+    min-height: 40vh;
+    max-height: none;
+  }
+  .targetContainer {
+    min-height: 280px;
+  }
+  .shootingsList {
+    max-height: 28vh;
+  }
+  .heatmapWidgets {
+    max-height: 28vh;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --text: #f1f5f9;
+    --text2: #94a3b8;
+    --border: #334155;
+  }
+}
+
+:root {
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --text: #1e293b;
+  --text2: #64748b;
+  --border: #e2e8f0;
+  --radius: 16px;
+  --thumb: 44px;
+  --blue: #3b82f6;
+  --green: #10b981;
+  --red: #ef4444;
+}

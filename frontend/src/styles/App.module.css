@@ -1,0 +1,163 @@
+/* Основной контейнер приложения */
+.appContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f9fafb;
+}
+
+/* Десктопная навигация */
+.desktopNav {
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.navLink {
+  text-decoration: none;
+  color: #374151;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.navLink:hover {
+  background: #f3f4f6;
+  color: #3b82f6;
+}
+
+.navLink:active {
+  transform: scale(0.95);
+}
+
+.logoutBtn {
+  margin-left: auto;
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logoutBtn:hover {
+  background: #dc2626;
+}
+
+.logoutBtn:active {
+  transform: scale(0.95);
+}
+
+/* Основной контент */
+.mainContent {
+  flex: 1;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mainContent.withMobileNav {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Мобильная навигация */
+.mobileNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(70px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.mobileNavItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  min-width: 60px;
+  text-decoration: none;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.mobileNavItem.active {
+  color: #3b82f6;
+}
+
+.mobileNavItem:active {
+  transform: scale(0.9);
+}
+
+.mobileNavIcon {
+  font-size: 24px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.mobileNavLabel {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .desktopNav {
+    display: none;
+  }
+  
+  .mainContent {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobileNav {
+    display: none;
+  }
+}
+
+/* Плавные анимации */
+* {
+  transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+/* Вспомогательные классы */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

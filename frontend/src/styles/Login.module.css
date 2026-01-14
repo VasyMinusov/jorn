@@ -1,0 +1,75 @@
+/* Login.module.css - переработанная */
+.wrapper {
+  max-width: 100%;
+  margin: 2vh auto;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  width: 90%;
+  box-sizing: border-box;
+}
+
+.title {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px; /* Увеличиваем для мобильных */
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.btn {
+  width: 100%;
+  padding: 1rem;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.btn:hover {
+  background-color: #4CAF50; /* Green background on hover */
+  transform: scale(1.05);    /* Slightly increase size on hover */
+}
+
+/* Для маленьких экранов */
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 1rem;
+    margin: 1vh auto;
+  }
+  
+  .title {
+    font-size: 1.25rem;
+  }
+  
+  .input, .btn {
+    padding: 0.875rem;
+  }
+}
