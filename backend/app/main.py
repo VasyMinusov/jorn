@@ -7,12 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from .database import create_all
 from .config import UPLOAD_DIR, PORT
 from .routers import auth, invites, groups, students, shootings, exercises
+from .models import User
 
 app = FastAPI(title="ShootingJournal", version="0.1")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://vasyminusov-jornal-frontend-8898.twc1.net"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
