@@ -1,0 +1,3673 @@
+=== Файл: ./frontend/Dockerfile ===
+FROM node:20-alpine AS builder
+
+RUN npm install -g pnpm
+
+WORKDIR /app
+COPY package*.json .
+RUN pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm run build
+
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+=== Конец файла: ./frontend/Dockerfile ===
+
+=== Файл: ./frontend/eslint.config.js ===
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+  },
+])
+
+=== Конец файла: ./frontend/eslint.config.js ===
+
+=== Файл: ./frontend/index.html ===
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+=== Конец файла: ./frontend/index.html ===
+
+=== Файл: ./frontend/nginx.conf ===
+user nginx;
+events { worker_connections 1024; }
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout 65;
+
+    server {
+        listen 80;
+        server_name _;
+        root /usr/share/nginx/html;
+        index index.html;
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+}
+=== Конец файла: ./frontend/nginx.conf ===
+
+=== Файл: ./frontend/package.json ===
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@types/heatmap.js": "^2.0.41",
+    "axios": "^1.13.2",
+    "heatmap.js": "^2.0.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.12.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.2.4"
+  }
+}
+
+=== Конец файла: ./frontend/package.json ===
+
+=== Файл: ./frontend/public/vite.svg ===
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
+=== Конец файла: ./frontend/public/vite.svg ===
+
+=== Файл: ./frontend/README.md ===
+Ниже — полностью готовые файлы, которые **заменяют** собой старые.  
+Логика React не менялась, добавлены только визуальные улучшения и мобильные «финтифлюшки» (аккордеон фильтров, safe-area, крупные тач-таргеты, нативная модалка на весь экран и т.д.).  
+Просто сохраните их поверх старых и запустите проект.
+
+--------------------------------------------------
+ResultsPage.module.css
+--------------------------------------------------
+/* ==========  CORE  ========== */
+.page{padding:1rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,sans-serif;min-height:calc(100vh - 60px);box-sizing:border-box;background:#f8fafc}
+@media(min-width:768px){.page{padding:1.5rem 2rem}}
+
+.header{display:flex;flex-direction:column;gap:1rem;margin-bottom:1.5rem}
+@media(min-width:768px){.header{flex-direction:row;justify-content:space-between;align-items:center}}
+
+.h2{font-size:1.5rem;font-weight:700;margin:0;color:#1e293b;line-height:1.2}
+@media(min-width:768px){.h2{font-size:1.75rem}}
+
+.resultsSummary{display:flex;gap:1.5rem;background:#fff;padding:.875rem 1.25rem;border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.summaryItem{display:flex;flex-direction:column;align-items:center;gap:.25rem}
+.summaryLabel{font-size:.75rem;color:#64748b;font-weight:500;text-transform:uppercase;letter-spacing:.025em}
+.summaryValue{font-size:1.25rem;font-weight:700;color:#3b82f6}
+
+.filtersContainer{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.filtersHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid #f1f5f9}
+.filtersTitle{font-size:1rem;font-weight:600;color:#1e293b}
+.clearFilters{font-size:.875rem;color:#3b82f6;background:none;border:none;cursor:pointer;padding:.375rem .75rem;border-radius:6px;transition:all .2s}
+.clearFilters:hover{background:#eff6ff}
+
+.filterGrid{display:grid;grid-template-columns:1fr;gap:1rem}
+@media(min-width:768px){.filterGrid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.filterGrid{grid-template-columns:repeat(3,1fr)}}
+.filterGroup{display:flex;flex-direction:column;gap:.5rem}
+.filterLabel{font-size:.875rem;font-weight:500;color:#475569}
+.filterSelect{width:100%;padding:.625rem .75rem;border:1px solid #d1d5db;border-radius:8px;font-size:.875rem;background:#fff;color:#1e293b;box-sizing:border-box;transition:border-color .2s}
+.filterSelect:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+
+.rangeInputs{display:flex;align-items:center;gap:.5rem}
+.rangeInput{flex:1;padding:.625rem .75rem;border:1px solid #d1d5db;border-radius:8px;font-size:.875rem;background:#fff;color:#1e293b;box-sizing:border-box;text-align:center}
+.rangeInput::placeholder{color:#94a3b8;text-align:center}
+.rangeSeparator{color:#94a3b8;font-weight:500}
+
+.loadingContainer{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;background:#fff;border-radius:12px;border:1px solid #e2e8f0}
+.loadingSpinner{width:48px;height:48px;border:3px solid #e2e8f0;border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loadingText{font-size:.875rem;color:#64748b;text-align:center}
+
+.emptyResults{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;background:#fff;border-radius:12px;border:1px solid #e2e8f0;text-align:center}
+.emptyIcon{font-size:3rem;margin-bottom:1rem;opacity:.5}
+.emptyTitle{font-size:1.125rem;font-weight:600;color:#1e293b;margin:0 0 .5rem 0}
+.emptyText{font-size:.875rem;color:#64748b;margin:0}
+
+/* ==========  CARDS  ========== */
+.resultCards{display:flex;flex-direction:column;gap:.75rem;margin-bottom:calc(5rem + env(safe-area-inset-bottom,0))}
+.resultCard{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:all .2s}
+.resultCard.selectedCard{border-color:#3b82f6;background:#eff6ff;box-shadow:0 0 0 2px rgba(59,130,246,.1)}
+.cardHeader{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid #f1f5f9}
+.cardHeaderLeft{display:flex;align-items:flex-start;gap:.75rem}
+.cardCheckbox{width:20px;height:20px;margin-top:.125rem;accent-color:#3b82f6;cursor:pointer}
+.studentName{font-weight:600;color:#1e293b;font-size:.875rem}
+.cardDate{font-size:.75rem;color:#64748b}
+.cardHeaderRight{display:flex;align-items:center}
+.newBadge{font-size:.625rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#10b981,#059669);padding:.125rem .375rem;border-radius:10px;text-transform:uppercase;letter-spacing:.05em;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+
+.cardContent{display:flex;flex-direction:column;gap:.75rem}
+.exerciseInfo{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.exerciseName{font-weight:500;color:#334155;font-size:.875rem}
+.groupTag{font-size:.75rem;padding:.125rem .5rem;background:#e0f2fe;color:#0369a1;border-radius:10px;font-weight:500}
+
+.cardNote{display:flex;align-items:flex-start;gap:.5rem;padding:.5rem;background:#fef3c7;border-radius:6px;border-left:3px solid #f59e0b}
+.noteIcon{font-size:.875rem;line-height:1}
+.noteText{font-size:.75rem;color:#92400e;line-height:1.4;flex:1}
+
+.cardStats{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin:.5rem 0}
+.statItem{display:flex;flex-direction:column;gap:.375rem}
+.statLabel{font-size:.75rem;color:#64748b;font-weight:500}
+.statValue{font-size:1.125rem;font-weight:700;color:#1e40af}
+.statValue.statMax{color:#059669}
+.statBar{width:100%;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden}
+.statBarFill{height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:2px;transition:width .5s ease}
+.statBarFill.timeOk{background:linear-gradient(90deg,#10b981,#34d399)}
+.statBarFill.timeOver{background:linear-gradient(90deg,#ef4444,#f87171)}
+
+.cardActions{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.5rem}
+.cardActionBtn{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.625rem;border:1px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;transition:all .2s;min-height:44px;justify-content:center}
+.cardActionBtn:hover{background:#f8fafc;border-color:#cbd5e1;transform:translateY(-1px)}
+.cardActionBtn:active{transform:scale(.95)}
+.actionIcon{font-size:1rem;line-height:1}
+.actionText{font-size:.75rem;color:#475569;font-weight:500}
+
+/* ==========  TABLE  ========== */
+.tableContainer{background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.tableWrapper{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table{width:100%;border-collapse:collapse;font-size:.875rem;min-width:1000px}
+.table th{padding:1rem .75rem;background:#f8fafc;font-weight:600;color:#475569;text-align:left;border-bottom:2px solid #e2e8f0;white-space:nowrap;position:sticky;top:0;z-index:10}
+.headerCheckbox{width:18px;height:18px;accent-color:#3b82f6;cursor:pointer}
+.table td{padding:.875rem .75rem;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.tableRow{transition:background-color .2s}
+.tableRow:hover{background:#f8fafc}
+.tableRow.selectedRow{background:#eff6ff}
+.colCheckbox{width:50px;text-align:center}
+.colDate{width:120px}
+.colStudent{width:140px}
+.colGroup{width:100px}
+.colExercise{width:180px;min-width:180px}
+.colHits{width:120px}
+.colTime{width:120px}
+.colActions{width:130px}
+.checkboxWrapper{display:flex;align-items:center;justify-content:center}
+.checkbox{width:18px;height:18px;cursor:pointer;accent-color:#3b82f6}
+.dateCell{display:flex;flex-direction:column;gap:.25rem;position:relative}
+.date{font-weight:500;color:#1e293b;font-size:.813rem}
+.time{font-size:.75rem;color:#64748b}
+.newIndicator{position:absolute;top:-6px;right:-6px;font-size:.625rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#10b981,#059669);padding:.125rem .375rem;border-radius:10px;text-transform:uppercase;letter-spacing:.05em}
+.studentCell{display:flex;align-items:center;gap:.5rem}
+.studentName{font-weight:500;color:#334155;font-size:.875rem}
+.noteIndicator{cursor:help;width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:#fef3c7;border-radius:50%;transition:all .2s}
+.noteIndicator:hover{background:#f59e0b}
+.noteIcon{font-size:.75rem;line-height:1}
+.groupBadge{display:inline-block;padding:.25rem .5rem;background:#e0f2fe;color:#0369a1;border-radius:10px;font-size:.75rem;font-weight:500;white-space:nowrap}
+.noGroup{color:#94a3b8;font-size:.75rem}
+.exerciseCell{display:flex;flex-direction:column;gap:.375rem}
+.exerciseName{font-weight:500;color:#1e293b;font-size:.813rem}
+.exerciseStats{display:flex;gap:.375rem;flex-wrap:wrap}
+.statBadge{font-size:.688rem;padding:.125rem .375rem;background:#f1f5f9;color:#475569;border-radius:6px;white-space:nowrap}
+.hitsCell{display:flex;flex-direction:column;gap:.375rem;align-items:center}
+.hitsValue{font-size:1.125rem;font-weight:700;color:#1e40af;line-height:1}
+.hitsValue.hitsMax{color:#059669}
+.hitsProgress{width:100%;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.hitsProgressBar{height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:3px;transition:width .5s ease}
+.timeCell{display:flex;flex-direction:column;gap:.375rem;align-items:center}
+.timeValue{font-size:1rem;font-weight:600;color:#7c3aed;line-height:1}
+.timeProgress{width:100%;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.timeProgressBar{height:100%;border-radius:3px;transition:width .5s ease}
+.timeProgressBar.timeOk{background:linear-gradient(90deg,#10b981,#34d399)}
+.timeProgressBar.timeOver{background:linear-gradient(90deg,#ef4444,#f87171)}
+.timeLabel{font-size:.75rem;color:#64748b}
+.actionsCell{display:flex;gap:.5rem;justify-content:center}
+.actionBtn{width:32px;height:32px;border:none;border-radius:8px;background:#f1f5f9;color:#475569;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.875rem;transition:all .2s;min-height:44px}
+.actionBtn:hover{background:#3b82f6;color:#fff;transform:translateY(-1px)}
+.actionBtn:active{transform:scale(.95)}
+.actionIcon{font-size:.875rem;line-height:1}
+.tableFooter{padding:1rem;border-top:1px solid #e2e8f0;background:#f8fafc}
+.footerStats{display:flex;justify-content:space-around;flex-wrap:wrap;gap:1rem}
+.footerStat{display:flex;flex-direction:column;align-items:center;gap:.25rem}
+.footerStatLabel{font-size:.75rem;color:#64748b;font-weight:500}
+.footerStatValue{font-size:1rem;font-weight:700;color:#3b82f6}
+
+/* ==========  ACTIONS BAR  ========== */
+.actionsBar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:.75rem 1rem calc(.75rem + env(safe-area-inset-bottom,0));border-top:1px solid #e2e8f0;box-shadow:0 -2px 10px rgba(0,0,0,.1);z-index:100}
+.actionsBarContent{display:flex;flex-direction:column;gap:.75rem;max-width:640px;margin:0 auto}
+.actionsBarInfo{display:flex;justify-content:space-between;align-items:center}
+.actionsBarText{font-size:.875rem;color:#475569}
+.clearSelectionBtn{font-size:.75rem;color:#ef4444;background:none;border:1px solid #fca5a5;padding:.25rem .75rem;border-radius:6px;cursor:pointer;transition:all .2s}
+.clearSelectionBtn:hover{background:#fee2e2}
+.desktopActions{display:flex;flex-direction:column;gap:1rem;margin-top:1.5rem;padding:1.25rem;background:#fff;border-radius:12px;border:1px solid #e2e8f0}
+.desktopActionsInfo{display:flex;justify-content:space-between;align-items:center}
+.selectionInfo{font-size:.875rem;color:#475569}
+.primaryActionBtn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.875rem 1.5rem;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 2px 4px rgba(59,130,246,.3);min-height:44px}
+.primaryActionBtn:hover:not(.disabled){background:linear-gradient(135deg,#2563eb,#1e40af);transform:translateY(-1px);box-shadow:0 4px 8px rgba(59,130,246,.4)}
+.primaryActionBtn:active:not(.disabled){transform:translateY(0)}
+.primaryActionBtn.disabled{background:#94a3b8;cursor:not-allowed;box-shadow:none}
+.actionBtnIcon{font-size:1rem}
+
+/* ==========  MOBILE ENHANCEMENTS  ========== */
+@media(max-width:768px){
+  :root{--safe-bottom:env(safe-area-inset-bottom,0)}
+  .page{padding:.5rem;padding-bottom:calc(4.5rem + var(--safe-bottom))}
+  .header{position:sticky;top:0;z-index:10;background:#fff;margin:-.5rem -.5rem .75rem -.5rem;padding:.75rem 1rem;border-bottom:1px solid #e2e8f0;box-shadow:0 2px 4px rgba(0,0,0,.05)}
+  .h2{font-size:1.25rem}
+  .resultsSummary{padding:.5rem .75rem;gap:1rem;font-size:.75rem}
+  .summaryValue{font-size:1.1rem}
+  .filtersContainer{padding:0;border-radius:0;box-shadow:none;border:none}
+  .filtersHeader{padding:.75rem 1rem;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+  .filtersHeader::after{content:'▾';margin-left:auto;transition:transform .2s}
+  .filtersHeader.open::after{transform:rotate(180deg)}
+  .filterGrid{max-height:0;overflow:hidden;transition:max-height .25s ease-out;padding:0 1rem}
+  .filterGrid.open{max-height:600px;padding:.75rem 1rem 1rem}
+  .resultCard{padding:.75rem}
+  .cardActions{grid-template-columns:repeat(3,1fr);gap:.25rem}
+  .cardActionBtn{font-size:.6875rem}
+  .actionsBar{background:rgba(255,255,255,.95);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(0,0,0,.05);padding:.5rem 1rem calc(.5rem + var(--safe-bottom))}
+  .primaryActionBtn{height:48px;font-size:1rem;border-radius:12px}
+}
+
+/* ==========  DARK  ========== */
+@media(prefers-color-scheme:dark){
+  .page{background:#0f172a}
+  .h2,.filtersTitle,.emptyTitle{color:#f1f5f9}
+  .resultsSummary,.filtersContainer,.loadingContainer,.emptyResults,.resultCard,.tableContainer,.desktopActions{background:#1e293b;border-color:#334155;color:#cbd5e1}
+  .studentName,.exerciseName,.date{color:#e2e8f0}
+  .table th{background:#1e293b;color:#94a3b8;border-color:#334155}
+  .table td{border-color:#334155;color:#cbd5e1}
+  .tableRow:hover{background:#334155}
+  .tableRow.selectedRow{background:#1e40af}
+  .actionsBar{background:#1e293b;border-color:#334155}
+  .clearSelectionBtn{color:#fca5a5;border-color:#7f1d1d}
+  .clearSelectionBtn:hover{background:#7f1d1d}
+}
+
+--------------------------------------------------
+HitViewer.module.css  (полностью)
+--------------------------------------------------
+/* Оверлей */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* Модальное окно */
+.modalBox{background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.4);width:95vw;max-width:1400px;height:95vh;max-height:900px;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .4s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:1024px){.modalBox{max-width:95vw;max-height:90vh;height:auto}}
+
+/* Шапка */
+.modalHeader{display:flex;justify-content:space-between;align-items:center;padding:1.5rem 2rem;border-bottom:1px solid #e5e7eb;background:linear-gradient(135deg,#1e293b,#334155);color:#fff;flex-shrink:0}
+@media(max-width:768px){.modalHeader{padding:1rem 1.25rem}}
+.modalTitle{margin:0;font-size:1.5rem;font-weight:700;color:#fff}
+.closeBtn{background:rgba(255,255,255,.1);border:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;transition:all .2s}
+.closeBtn:hover{background:rgba(255,255,255,.2);transform:rotate(90deg)}
+.closeBtn:active{transform:scale(.95) rotate(90deg)}
+
+/* 3-колонки */
+.threeColumnLayout{display:flex;flex:1;min-height:0;height:calc(100% - 80px);overflow:hidden}
+@media(max-width:1024px){.threeColumnLayout{flex-direction:column;height:auto}}
+
+/* Левая */
+.leftColumn{flex:0 0 320px;display:flex;flex-direction:column;background:#f8fafc;border-right:1px solid #e5e7eb;overflow:hidden;padding:1.5rem}
+@media(max-width:1024px){.leftColumn{flex:0 0 auto;border-right:none;border-bottom:1px solid #e5e7eb;max-height:300px;min-height:300px}}
+@media(max-width:768px){.leftColumn{padding:1rem;max-height:250px;min-height:250px}}
+
+/* Центр */
+.centerColumn{flex:1;display:flex;flex-direction:column;padding:1.5rem;min-width:0;background:#fff;overflow:hidden}
+@media(max-width:1024px){.centerColumn{flex:1;min-height:400px;max-height:500px}}
+@media(max-width:768px){.centerColumn{min-height:350px;max-height:400px;padding:1rem}}
+
+/* Правая */
+.rightColumn{flex:0 0 320px;display:flex;flex-direction:column;background:#f8fafc;border-left:1px solid #e5e7eb;overflow:hidden;padding:1.5rem}
+@media(max-width:1024px){.rightColumn{flex:0 0 auto;border-left:none;border-top:1px solid #e5e7eb;max-height:300px;min-height:300px}}
+@media(max-width:768px){.rightColumn{padding:1rem;max-height:250px;min-height:250px}}
+
+/* Контейнер мишени */
+.targetContainer{position:relative;flex:1;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;width:100%;height:100%}
+.targetCanvas,.heatCanvas,.centerCanvas,.dotsCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;image-rendering:-moz-crisp-edges;image-rendering:-webkit-crisp-edges;image-rendering:pixelated;image-rendering:crisp-edges}
+.targetCanvas{z-index:1}.heatCanvas{z-index:2}.centerCanvas{z-index:3}.dotsCanvas{z-index:4}
+
+/* Виджеты */
+.heatmapWidgets{display:flex;flex-direction:column;gap:1.5rem;height:100%;overflow-y:auto}
+.widgetCard{background:#fff;border-radius:12px;padding:1.5rem;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.widgetTitle{margin:0 0 1.5rem 0;font-size:1.125rem;font-weight:600;color:#1e293b;text-align:center}
+.sliderGroup{display:flex;flex-direction:column;gap:1.25rem;margin-bottom:1.5rem}
+.sliderControl{display:flex;flex-direction:column;gap:.75rem}
+.sliderLabel{display:flex;justify-content:space-between;align-items:center;font-size:.875rem;font-weight:500;color:#334155}
+.sliderValue{background:#e2e8f0;padding:.25rem .75rem;border-radius:12px;font-size:.75rem;font-weight:600;color:#475569;min-width:50px;text-align:center}
+.slider{width:100%;height:6px;-webkit-appearance:none;appearance:none;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:3px;outline:none}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #3b82f6;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:all .2s}
+.slider::-webkit-slider-thumb:hover{transform:scale(1.1);box-shadow:0 4px 8px rgba(0,0,0,.3)}
+
+/* Списки */
+.shootingsHeader{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid #e2e8f0}
+.shootingsTitle{margin:0;font-size:1.125rem;font-weight:600;color:#1e293b}
+.shootingsCount{background:#3b82f6;color:#fff;padding:.125rem .625rem;border-radius:12px;font-size:.75rem;font-weight:700}
+.activeCount{margin-left:auto;font-size:.875rem;color:#495057;background:#e7f5ff;padding:2px 8px;border-radius:10px}
+.emptyShootings{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem;text-align:center;color:#64748b}
+.emptyIcon{font-size:3rem;margin-bottom:1rem;opacity:.5}
+.emptyText{font-size:1.125rem;font-weight:600;color:#475569;margin:0 0 .5rem 0}
+.emptyHint{font-size:.875rem;margin:0;line-height:1.4}
+.shootingsList{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:.75rem;padding-right:.5rem;margin-bottom:1rem}
+.shootingsList::-webkit-scrollbar{width:6px}
+.shootingsList::-webkit-scrollbar-track{background:#f1f5f9;border-radius:3px}
+.shootingsList::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.shootingsList::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+.shootingItem{display:flex;align-items:flex-start;gap:.75rem;padding:1rem;background:#fff;border:1px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:all .2s}
+.shootingItem:hover{border-color:#cbd5e1;background:#f8fafc;transform:translateX(2px)}
+.shootingItem.selected{border-color:#3b82f6;background:#eff6ff;box-shadow:0 0 0 2px rgba(59,130,246,.1)}
+.itemCheckbox{padding-top:.25rem}
+.checkbox{width:18px;height:18px;accent-color:#3b82f6;cursor:pointer}
+.itemContent{flex:1;display:flex;flex-direction:column;gap:.5rem;min-width:0}
+.itemHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap}
+.studentName{font-weight:600;color:#1e293b;font-size:.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exerciseName{font-size:.75rem;color:#475569;background:#f1f5f9;padding:.125rem .5rem;border-radius:8px;white-space:nowrap}
+.itemDetails{display:flex;gap:1rem;font-size:.75rem;color:#64748b}
+.itemStats{display:flex;gap:.75rem;flex-wrap:wrap}
+.stat{display:flex;align-items:center;gap:.25rem;font-size:.75rem;font-weight:500;color:#475569;background:#f1f5f9;padding:.25rem .75rem;border-radius:8px}
+.statIcon{font-size:.875rem;line-height:1}
+.groupTag{font-size:.75rem;color:#0369a1;background:#e0f2fe;padding:.25rem .75rem;border-radius:8px;font-weight:500}
+.errorItem{display:flex;align-items:center;gap:.75rem;padding:1rem;background:#fef3c7;border:1px solid #f59e0b;border-radius:12px}
+.errorIcon{font-size:1.25rem;flex-shrink:0}
+.errorText{font-size:.875rem;color:#92400e;line-height:1.4}
+.actionsFooter{display:flex;gap:.75rem;padding-top:1rem;margin-top:auto;border-top:1px solid #e2e8f0}
+.selectAllBtn,.exportBtn{flex:1;padding:.75rem 1rem;border:none;border-radius:8px;font-size:.875rem;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.selectAllBtn{background:#f1f5f9;color:#475569}
+.selectAllBtn:hover{background:#e2e8f0}
+.exportBtn{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.exportBtn:hover{background:linear-gradient(135deg,#059669,#047857);transform:translateY(-1px)}
+.exportBtn:active{transform:translateY(0)}
+.exportIcon{font-size:1rem;line-height:1}
+
+/* Тёмная тема */
+@media(prefers-color-scheme:dark){
+  .modalBox{background:#1e293b;color:#e2e8f0}
+  .modalHeader{background:linear-gradient(135deg,#0f172a,#1e293b);border-bottom-color:#334155}
+  .closeBtn{background:rgba(255,255,255,.05);color:#cbd5e1}
+  .leftColumn,.rightColumn{background:#0f172a;border-color:#334155}
+  .centerColumn{background:#1e293b}
+  .targetContainer{background:#1e293b;border-color:#334155}
+  .widgetCard{background:#1e293b;border-color:#334155}
+  .widgetTitle{color:#e2e8f0}
+  .sliderLabel{color:#cbd5e1}
+  .sliderValue{background:#334155;color:#94a3b8}
+  .shootingsTitle{color:#e2e8f0}
+  .shootingItem{background:#1e293b;border-color:#334155}
+  .shootingItem:hover{background:#334155;border-color:#475569}
+  .shootingItem.selected{background:#1e40af;border-color:#3b82f6}
+  .studentName{color:#e2e8f0}
+  .exerciseName{background:#334155;color:#94a3b8}
+  .stat{background:#334155;color:#cbd5e1}
+  .groupTag{background:#1e3a8a;color:#bfdbfe}
+  .errorItem{background:#78350f;border-color:#92400e}
+  .errorText{color:#fef3c7}
+  .selectAllBtn{background:#334155;color:#cbd5e1}
+  .selectAllBtn:hover{background:#475569}
+  .emptyText{color:#cbd5e1}
+  .emptyHint{color:#94a3b8}
+  .shootingsList::-webkit-scrollbar-track{background:#334155}
+  .shootingsList::-webkit-scrollbar-thumb{background:#475569}
+  .shootingsList::-webkit-scrollbar-thumb:hover{background:#64748b}
+}
+
+/* Мобильные улучшения */
+@media(max-width:768px){
+  .overlay{padding:0}
+  .modalBox{width:100%;height:100%;max-width:none;max-height:none;border-radius:0}
+  .threeColumnLayout{flex-direction:column;height:100%}
+  .leftColumn{max-height:35vh;border:none;border-bottom:1px solid #e2e8f0}
+  .centerColumn{min-height:40vh;max-height:50vh}
+  .rightColumn{max-height:25vh;border:none;border-top:1px solid #e2e8f0}
+  .widgetTitle{font-size:1rem;margin-bottom:.75rem}
+  .sliderGroup{gap:.75rem}
+  .sliderLabel{font-size:.8125rem}
+  .legendItems{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem}
+  .itemHeader{flex-direction:column;align-items:flex-start;gap:.25rem}
+  .itemStats{flex-direction:column;align-items:flex-start}
+}
+
+.inactive{opacity:.6;background-color:#f8f9fa}
+.inactive:hover{opacity:.8;background-color:#f1f3f5}
+.inactiveBadge{background:#dee2e6;color:#495057;padding:2px 6px;border-radius:10px;font-size:.75rem;margin-left:8px}
+.targetInfo{text-align:center;margin-top:10px;color:#495057;font-size:.875rem;background:#f8f9fa;padding:5px 10px;border-radius:5px}
+
+--------------------------------------------------
+Резюме
+--------------------------------------------------
+1. Сохраняйте старые `.tsx`-файлы – **ничего не меняется**, кроме одной строчки:  
+   добавьте в `ResultsPage.tsx`  
+   `const [filtersOpen, setFiltersOpen] = useState(true);`  
+   и на `.filtersHeader` повесьте `onClick={()=>setFiltersOpen(o=>!o)}` + класс `open` (показано выше).
+
+2. Замените два `.module.css`-файла приведёнными выше – **всё остальное уже внутри**.
+
+3. Убедитесь, что в `index.html` есть мета-тег `viewport` с `viewport-fit=cover` (пример в тексте).
+
+После этого ваше приложение:
+- полностью адаптировано под мобильные экраны любого размера,  
+- учитывает «сейф-эйрию» на iPhone-X+ ,  
+- все кнопки ≥ 44 px,  
+- фильтры свёрнуты в аккордеон,  
+- HitViewer разворачивается на весь экран – удобно смотреть мишень пальцами.
+=== Конец файла: ./frontend/README.md ===
+
+=== Файл: ./frontend/src/api.ts ===
+import axios from "axios";
+import type { Group, User, Exercise, Shooting } from "./types";
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
+});
+
+console.log("API_URL =", import.meta.env.VITE_API_URL);
+
+// автоматически добавляем токен
+api.interceptors.request.use((cfg) => {
+  const t = localStorage.getItem("token");
+  if (t) cfg.headers.Authorization = `Bearer ${t}`;
+  return cfg;
+});
+
+export default api;
+
+// аутентификация
+export const login = (form: FormData) => api.post<{ access_token: string }>("/auth/token", form);
+export const getMe = () => api.get<User>("/auth/me");
+
+// группы
+export const getGroups = () => api.get<Group[]>("/groups");
+export const createGroup = (name: string) => api.post<Group>("/groups", { name });
+
+// студенты
+export const getStudents = () => api.get<User[]>("/students");
+export const createStudent = (payload: { username: string; password: string; group_id?: number }) =>
+  api.post<User>("/students/create", payload);
+
+// упражнения
+export const getExercises = () => api.get<Exercise[]>("/exercises");
+export const getAvailableExercises = () => api.get<Exercise[]>("/exercises/available");
+export const getTeacherExercises = () => api.get<Exercise[]>("/exercises/my-teacher");
+export const createExercise = (form: FormData) => api.post<Exercise>("/exercises", form);
+
+// стрельбы
+export const getResults = (params?: {
+  student_id?: number;
+  group_id?: number;
+  exercise_id?: number;
+  hits_from?: number;
+  hits_to?: number;
+  time_from?: number;
+  time_to?: number;
+}) => api.get<Shooting[]>("/shootings", { params });
+
+export const addShooting = (form: FormData) => api.post<Shooting>("/shootings", form);
+=== Конец файла: ./frontend/src/api.ts ===
+
+=== Файл: ./frontend/src/App.css ===
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+=== Конец файла: ./frontend/src/App.css ===
+
+=== Файл: ./frontend/src/App.tsx ===
+import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from "react-router-dom";
+import api from "./api";
+import type { User } from "./types";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import TeacherDashboard from "./pages/TeacherDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
+import ShootingForm from "./pages/ShootingForm";
+import styles from "./styles/App.module.css";
+import ResultsPage from "./pages/ResultsPage";
+import FinishInvite from "./pages/FinishInvite";
+
+// Компонент мобильной навигации
+function MobileNav({ onLogout }: { onLogout: () => void }) {
+  const location = useLocation();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  if (!isMobile) return null;
+
+  const navItems = [
+    { path: '/', icon: '🏠', label: 'Главная' },
+    { path: '/shooting', icon: '🎯', label: 'Стрельба' },
+    { path: '/results', icon: '📊', label: 'Результаты' },
+  ];
+
+  return (
+    <nav className={styles.mobileNav}>
+      {navItems.map(item => (
+        <Link 
+          to={item.path} 
+          key={item.path}
+          className={`${styles.mobileNavItem} ${location.pathname === item.path ? styles.active : ''}`}
+        >
+          <span className={styles.mobileNavIcon}>{item.icon}</span>
+          <span className={styles.mobileNavLabel}>{item.label}</span>
+        </Link>
+      ))}
+      <button 
+        className={styles.mobileNavItem}
+        onClick={onLogout}
+        aria-label="Выйти"
+      >
+        <span className={styles.mobileNavIcon}>🚪</span>
+        <span className={styles.mobileNavLabel}>Выйти</span>
+      </button>
+    </nav>
+  );
+}
+
+function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get("/auth/me")
+       .then(r => setUser(r.data))
+       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
+  if (!user)
+    return (
+      <Routes>
+        <Route path="/login"    element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/finish-invite" element={<FinishInvite />} />
+        <Route path="*"         element={<Navigate to="/login" />} />
+      </Routes>
+    );
+
+  return (
+    <div className={styles.appContainer}>
+      {/* Верхняя навигация для десктопа */}
+      {!isMobile && (
+        <nav className={styles.desktopNav}>
+          <Link to="/" className={styles.navLink}>Главная</Link>
+          <Link to="/shooting" className={styles.navLink}>Добавить стрельбу</Link>
+          <Link to="/results" className={styles.navLink}>Результаты</Link>
+          <button className={styles.logoutBtn} onClick={logout}>Выйти</button>
+        </nav>
+      )}
+
+      {/* Основной контент */}
+      <main className={`${styles.mainContent} ${isMobile ? styles.withMobileNav : ''}`}>
+        <Routes>
+          <Route path="/" element={user.is_teacher ? <TeacherDashboard /> : <StudentDashboard />} />
+          <Route path="/shooting" element={<ShootingForm />} />
+          <Route path="/results" element={<ResultsPage />} />
+        </Routes>
+      </main>
+
+      {/* Мобильная навигация */}
+      <MobileNav onLogout={logout} />
+    </div>
+  );
+}
+
+export default function AppWrapper() {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
+=== Конец файла: ./frontend/src/App.tsx ===
+
+=== Файл: ./frontend/src/assets/react.svg ===
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
+=== Конец файла: ./frontend/src/assets/react.svg ===
+
+=== Файл: ./frontend/src/index.css ===
+/* Добавить в index.css или создать новый глобальный файл */
+:root {
+  --mobile-safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --mobile-safe-area-inset-top: env(safe-area-inset-top, 0px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Улучшение для touch-управления */
+button, 
+input[type="button"], 
+input[type="submit"],
+select {
+  touch-action: manipulation;
+  min-height: 44px; /* Минимальный размер для touch */
+  min-width: 44px;
+}
+
+/* Убираем синее выделение при тапе на iOS */
+input, 
+textarea, 
+button, 
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Улучшение скролла на iOS */
+.scrollable {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Адаптивные шрифты */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+/* Скрываем скроллбар на мобильных */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Поддержка темной темы */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #111827;
+    color: #f9fafb;
+  }
+}
+=== Конец файла: ./frontend/src/index.css ===
+
+=== Файл: ./frontend/src/main.tsx ===
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+=== Конец файла: ./frontend/src/main.tsx ===
+
+=== Файл: ./frontend/src/pages/AddExercise.tsx ===
+import { useState } from "react";
+import { createExercise } from "../api";
+import styles from "../styles/TeacherDashboard.module.css";
+
+export default function AddExercise({ onAdd }: { onAdd: () => void }) {
+  const [show, setShow] = useState(false);
+  const [name, setName] = useState("");
+  const [hits, setHits] = useState(10);
+  const [sec, setSec] = useState(0);
+  const [file, setFile] = useState<File | null>(null);
+
+  const submit = async () => {
+    if (!file || !name.trim()) return;
+    const form = new FormData();
+    form.set("name", name);
+    form.set("max_hits", String(hits));
+    form.set("time_sec", String(sec));
+    form.set("target", file);
+    await createExercise(form);
+    setName(""); setHits(10); setSec(0); setFile(null); setShow(false);
+    onAdd();
+  };
+
+  return (
+    <>
+      {!show ? (
+        <button className={styles.btn} onClick={() => setShow(true)}>
+          Добавить упражнение
+        </button>
+      ) : (
+        <div className={styles.inline}>
+          <input
+            className={styles.input}
+            placeholder="Название"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <input
+            className={styles.input}
+            type="number"
+            min={1}
+            value={hits}
+            onChange={(e) => setHits(Number(e.target.value))}
+          />
+          <input
+            className={styles.input}
+            type="number"
+            min={0}
+            value={sec}
+            onChange={(e) => setSec(Number(e.target.value))}
+          />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+          />
+          <button className={styles.btn} onClick={submit}>
+            Сохранить
+          </button>
+          <button className={styles.btn} onClick={() => setShow(false)}>
+            Отмена
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+=== Конец файла: ./frontend/src/pages/AddExercise.tsx ===
+
+=== Файл: ./frontend/src/pages/FinishInvite.tsx ===
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import api from "../api";
+import styles from "../styles/Login.module.css"; // переиспользуем те же стили
+
+export default function FinishInvite() {
+  const [params] = useSearchParams();
+  const code = params.get("code") ?? "";
+  const [password, setPassword]   = useState(""); // пароль из приглашения
+  const [username, setUsername]   = useState("");
+  const [newPwd, setNewPwd]       = useState("");
+  const nav = useNavigate();
+
+  const submit = async () => {
+    if (!code || !password || !username || !newPwd) {
+      alert("Заполните все поля");
+      return;
+    }
+    try {
+      await api.post("/auth/finish-invite", {
+        code,
+        password,
+        username,
+        new_password: newPwd,
+      });
+      alert("Аккаунт создан – войдите");
+      nav("/login");
+    } catch (e: any) {
+      alert(e?.response?.data?.detail || "Ошибка");
+    }
+  };
+
+  return (
+    <div className={styles.wrapper}>
+      <h2 className={styles.title}>Завершение регистрации преподавателя</h2>
+
+      <label className={styles.label}>Пароль из приглашения</label>
+      <input
+        className={styles.input}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <label className={styles.label}>Придумайте логин</label>
+      <input
+        className={styles.input}
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+
+      <label className={styles.label}>Придумайте пароль</label>
+      <input
+        className={styles.input}
+        type="password"
+        value={newPwd}
+        onChange={(e) => setNewPwd(e.target.value)}
+      />
+
+      <button className={styles.btn} onClick={submit}>
+        Создать аккаунт
+      </button>
+    </div>
+  );
+}
+=== Конец файла: ./frontend/src/pages/FinishInvite.tsx ===
+
+=== Файл: ./frontend/src/pages/HitViewer.tsx ===
+import { useEffect, useRef, useState, useMemo } from "react";
+import type { Shooting } from "../types";
+import styles from "../styles/HitViewer.module.css";
+
+type Props = {
+  shootings: Shooting[]; // Все выбранные стрельбы
+  onClose: () => void;
+};
+
+export default function HitViewer({
+  shootings,
+  onClose,
+}: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const targetRef = useRef<HTMLCanvasElement>(null);
+  const heatRef = useRef<HTMLCanvasElement>(null);
+  const centerRef = useRef<HTMLCanvasElement>(null);
+  const dotsRef = useRef<HTMLCanvasElement>(null);
+
+  const [alphaHeat, setAlphaHeat] = useState(0.7);
+  const [alphaCenter, setAlphaCenter] = useState(0.5);
+  const [alphaDots, setAlphaDots] = useState(0.8);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [targetSize, setTargetSize] = useState({ width: 800, height: 800 });
+  
+  // Локальное состояние - ВСЕ ID изначально выбраны
+  const [visibleIds, setVisibleIds] = useState<Set<number>>(
+    new Set(shootings.map(sh => sh.id))
+  );
+
+  // Кэш размеров мишени по URL
+  const targetSizeCache = useRef<Record<string, { width: number; height: number; offsetX: number; offsetY: number }>>({});
+
+  // Стрельбы, которые отображаются на мишени
+  const visibleShootings = useMemo(() => {
+    return shootings.filter(sh => visibleIds.has(sh.id));
+  }, [shootings, visibleIds]);
+
+  // Переключение видимости
+  const toggleVisibility = (id: number) => {
+    setVisibleIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  // Выбрать все / снять все
+  const handleSelectAll = () => {
+    if (visibleIds.size === shootings.length) {
+      // Снять все
+      setVisibleIds(new Set());
+    } else {
+      // Выбрать все
+      setVisibleIds(new Set(shootings.map(sh => sh.id)));
+    }
+  };
+
+  // Расчет размеров контейнера мишени
+  useEffect(() => {
+    const updateTargetSize = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth;
+        const containerHeight = containerRef.current.clientHeight;
+        
+        const targetHeight = Math.min(containerHeight * 0.9, 800);
+        const targetWidth = targetHeight;
+        
+        setTargetSize({ width: targetWidth, height: targetHeight });
+      }
+    };
+
+    updateTargetSize();
+    window.addEventListener('resize', updateTargetSize);
+    
+    return () => {
+      window.removeEventListener('resize', updateTargetSize);
+    };
+  }, []);
+
+  // Функция получения размеров и смещений с кэшированием
+  const getTargetSize = (imgUrl: string, containerWidth: number, containerHeight: number) => {
+    const cacheKey = `${imgUrl}_${containerWidth}_${containerHeight}`;
+    
+    if (targetSizeCache.current[cacheKey]) {
+      return targetSizeCache.current[cacheKey];
+    }
+
+    const img = new Image();
+    img.src = `${import.meta.env.VITE_API_URL}${imgUrl}`;
+    if (!img.complete || !img.naturalWidth || !img.naturalHeight) {
+      const size = Math.min(containerWidth, containerHeight);
+      return { width: size, height: size, offsetX: (containerWidth - size) / 2, offsetY: (containerHeight - size) / 2 };
+    }
+
+    const containerSize = Math.min(containerWidth, containerHeight);
+    const scale = Math.min(
+      containerSize / img.naturalWidth,
+      containerSize / img.naturalHeight
+    );
+    const drawWidth = img.naturalWidth * scale;
+    const drawHeight = img.naturalHeight * scale;
+    const offsetX = (containerWidth - drawWidth) / 2;
+    const offsetY = (containerHeight - drawHeight) / 2;
+
+    const size = { width: drawWidth, height: drawHeight, offsetX, offsetY };
+    targetSizeCache.current[cacheKey] = size;
+    return size;
+  };
+
+  // Загрузка изображения
+  const loadImage = async (imgUrl: string) => {
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error(`Failed to load image: ${imgUrl}`));
+      img.src = `${import.meta.env.VITE_API_URL}${imgUrl}`;
+      img.crossOrigin = "anonymous";
+    });
+    return img;
+  };
+
+  // Предзагрузка мишени
+  useEffect(() => {
+    if (!shootings.length) return;
+
+    const load = async () => {
+      try {
+        const imgUrl = shootings[0].exercise.target_url;
+        await loadImage(imgUrl);
+        Object.keys(targetSizeCache.current).forEach(key => {
+          if (key.startsWith(imgUrl)) {
+            delete targetSizeCache.current[key];
+          }
+        });
+        setImageLoaded(true);
+      } catch (error) {
+        console.error("Error loading image:", error);
+      }
+    };
+
+    load();
+  }, [shootings]);
+
+  // Рисуем мишень как фон
+  useEffect(() => {
+    if (!shootings.length || !imageLoaded || !containerRef.current) return;
+
+    const canvas = targetRef.current;
+    if (canvas && containerRef.current) {
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
+      
+      const ctx = canvas.getContext("2d")!;
+      if (!ctx) return;
+      
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = containerWidth * dpr;
+      canvas.height = containerHeight * dpr;
+      canvas.style.width = `${containerWidth}px`;
+      canvas.style.height = `${containerHeight}px`;
+      ctx.scale(dpr, dpr);
+      
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.clearRect(0, 0, containerWidth, containerHeight);
+
+      const img = new Image();
+      img.src = `${import.meta.env.VITE_API_URL}${shootings[0].exercise.target_url}`;
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const { offsetX, offsetY, width, height: drawHeight } = getTargetSize(
+          shootings[0].exercise.target_url, 
+          containerWidth, 
+          containerHeight
+        );
+        ctx.drawImage(img, offsetX, offsetY, width, drawHeight);
+      };
+    }
+  }, [shootings, imageLoaded, targetSize]);
+
+  /* ---------- ТОЧКИ ---------- */
+  useEffect(() => {
+    if (!imageLoaded || !dotsRef.current || !containerRef.current) return;
+
+    const canvas = dotsRef.current;
+    const ctx = canvas.getContext("2d")!;
+    if (!ctx) return;
+    
+    const containerWidth = containerRef.current.clientWidth;
+    const containerHeight = containerRef.current.clientHeight;
+    
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = containerWidth * dpr;
+    canvas.height = containerHeight * dpr;
+    canvas.style.width = `${containerWidth}px`;
+    canvas.style.height = `${containerHeight}px`;
+    ctx.scale(dpr, dpr);
+    
+    ctx.clearRect(0, 0, containerWidth, containerHeight);
+    
+    ctx.globalAlpha = alphaDots;
+
+    visibleShootings.forEach((sh) => {
+      const pts: { x: number; y: number }[] = JSON.parse(sh.canvas_json);
+      const { offsetX, offsetY, width, height: imgHeight } = getTargetSize(
+        sh.exercise.target_url, 
+        containerWidth, 
+        containerHeight
+      );
+
+      pts.forEach((p) => {
+        const x = offsetX + p.x * width;
+        const y = offsetY + p.y * imgHeight;
+        
+        const distance = Math.sqrt(Math.pow(p.x - 0.5, 2) + Math.pow(p.y - 0.5, 2));
+        if (distance < 0.1) {
+          ctx.fillStyle = "#ef4444";
+        } else if (distance < 0.2) {
+          ctx.fillStyle = "#f97316";
+        } else if (distance < 0.3) {
+          ctx.fillStyle = "#eab308";
+        } else if (distance < 0.4) {
+          ctx.fillStyle = "#84cc16";
+        } else {
+          ctx.fillStyle = "#22c55e";
+        }
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+    });
+  }, [visibleShootings, imageLoaded, alphaDots, targetSize]);
+
+  /* ---------- ТЕПЛОВАЯ КАРТА ---------- */
+  useEffect(() => {
+    if (!imageLoaded || !heatRef.current || !containerRef.current) return;
+
+    const canvas = heatRef.current;
+    const ctx = canvas.getContext("2d")!;
+    if (!ctx) return;
+    
+    const containerWidth = containerRef.current.clientWidth;
+    const containerHeight = containerRef.current.clientHeight;
+    
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = containerWidth * dpr;
+    canvas.height = containerHeight * dpr;
+    canvas.style.width = `${containerWidth}px`;
+    canvas.style.height = `${containerHeight}px`;
+    ctx.scale(dpr, dpr);
+    
+    ctx.clearRect(0, 0, containerWidth, containerHeight);
+
+    const allPoints = visibleShootings.flatMap((sh) =>
+      JSON.parse(sh.canvas_json) as { x: number; y: number }[]
+    );
+    if (!allPoints.length) return;
+
+    const pointsWithUrl: { p: { x: number; y: number }; url: string }[] = [];
+    visibleShootings.forEach((sh) => {
+      const pts: { x: number; y: number }[] = JSON.parse(sh.canvas_json);
+      pts.forEach((p) => {
+        pointsWithUrl.push({ p, url: sh.exercise.target_url });
+      });
+    });
+
+    const scaledPoints = pointsWithUrl.map(({ p, url }) => {
+      const { offsetX, offsetY, width, height: imgHeight } = getTargetSize(
+        url, 
+        containerWidth, 
+        containerHeight
+      );
+      return {
+        x: offsetX + p.x * width,
+        y: offsetY + p.y * imgHeight,
+      };
+    });
+
+    const cluster = Math.max(10, Math.min(containerWidth, containerHeight) * 0.02);
+    const map = new Map<string, number>();
+    scaledPoints.forEach((pt) => {
+      const key = `${Math.floor(pt.x / cluster)}_${Math.floor(pt.y / cluster)}`;
+      map.set(key, (map.get(key) || 0) + 1);
+    });
+
+    if (map.size === 0) return;
+
+    const maxCount = Math.max(...map.values());
+    
+    map.forEach((cnt, key) => {
+      const [cx, cy] = key.split("_").map(Number);
+      const x = cx * cluster + cluster / 2;
+      const y = cy * cluster + cluster / 2;
+      const radius = cluster * 2;
+      
+      const t = cnt / maxCount;
+      const r = Math.round(255 * t);
+      const g = Math.round(128 * (1 - t));
+      const b = Math.round(64 * (1 - t));
+      
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+      grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${alphaHeat})`);
+      grad.addColorStop(0.7, `rgba(${r}, ${g}, ${b}, ${alphaHeat * 0.5})`);
+      grad.addColorStop(1, "rgba(0,0,0,0)");
+      
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }, [visibleShootings, alphaHeat, imageLoaded, targetSize]);
+
+  /* ---------- ЦЕНТР ПРИЦЕЛИВАНИЯ ---------- */
+  useEffect(() => {
+    if (!imageLoaded || !centerRef.current || !containerRef.current) return;
+
+    const canvas = centerRef.current;
+    const ctx = canvas.getContext("2d")!;
+    if (!ctx) return;
+    
+    const containerWidth = containerRef.current.clientWidth;
+    const containerHeight = containerRef.current.clientHeight;
+    
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = containerWidth * dpr;
+    canvas.height = containerHeight * dpr;
+    canvas.style.width = `${containerWidth}px`;
+    canvas.style.height = `${containerHeight}px`;
+    ctx.scale(dpr, dpr);
+    
+    ctx.clearRect(0, 0, containerWidth, containerHeight);
+
+    const allPoints = visibleShootings.flatMap((sh) =>
+      JSON.parse(sh.canvas_json) as { x: number; y: number }[]
+    );
+    if (!allPoints.length) return;
+
+    const pointsWithUrl: { p: { x: number; y: number }; url: string }[] = [];
+    visibleShootings.forEach((sh) => {
+      const pts: { x: number; y: number }[] = JSON.parse(sh.canvas_json);
+      pts.forEach((p) => {
+        pointsWithUrl.push({ p, url: sh.exercise.target_url });
+      });
+    });
+
+    const scaledPoints = pointsWithUrl.map(({ p, url }) => {
+      const { offsetX, offsetY, width, height: imgHeight } = getTargetSize(
+        url, 
+        containerWidth, 
+        containerHeight
+      );
+      return {
+        x: offsetX + p.x * width,
+        y: offsetY + p.y * imgHeight,
+      };
+    });
+
+    const cx = scaledPoints.reduce((s, pt) => s + pt.x, 0) / scaledPoints.length;
+    const cy = scaledPoints.reduce((s, pt) => s + pt.y, 0) / scaledPoints.length;
+    const radius = Math.max(
+      ...scaledPoints.map((pt) => Math.hypot(pt.x - cx, pt.y - cy))
+    ) || Math.min(containerWidth, containerHeight) * 0.1;
+
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    grad.addColorStop(0, `rgba(255,255,0,${alphaCenter})`);
+    grad.addColorStop(0.3, `rgba(255,128,0,${alphaCenter * 0.7})`);
+    grad.addColorStop(0.7, `rgba(255,0,0,${alphaCenter * 0.4})`);
+    grad.addColorStop(1, "rgba(0,0,255,0)");
+
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.strokeStyle = `rgba(255,255,255,${alphaCenter})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - 15, cy);
+    ctx.lineTo(cx + 15, cy);
+    ctx.moveTo(cx, cy - 15);
+    ctx.lineTo(cx, cy + 15);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${alphaCenter})`;
+    ctx.fill();
+  }, [visibleShootings, alphaCenter, imageLoaded, targetSize]);
+
+  return (
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h3 className={styles.modalTitle}>Анализ попаданий</h3>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Закрыть">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className={styles.threeColumnLayout}>
+          {/* Левая колонка - все стрельбы */}
+          <div className={styles.leftColumn}>
+            <div className={styles.shootingsHeader}>
+              <h4 className={styles.shootingsTitle}>Стрельбы для анализа</h4>
+              <span className={styles.shootingsCount}>({shootings.length})</span>
+              <div className={styles.activeCount}>
+                Видимых: {visibleIds.size}
+              </div>
+            </div>
+
+            {shootings.length === 0 ? (
+              <div className={styles.emptyShootings}>
+                <div className={styles.emptyIcon}>🎯</div>
+                <p className={styles.emptyText}>Нет выбранных стрельб</p>
+                <p className={styles.emptyHint}>Вернитесь к таблице и выберите стрельбы для анализа</p>
+              </div>
+            ) : (
+              <>
+                <div className={styles.shootingsList}>
+                  {shootings.map((sh) => {
+                    if (!sh.student || !sh.exercise) {
+                      return (
+                        <div key={sh.id} className={styles.errorItem}>
+                          <div className={styles.errorIcon}>⚠️</div>
+                          <div className={styles.errorText}>
+                            Отсутствуют данные о студенте или упражнении
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div 
+                        key={sh.id} 
+                        className={`${styles.shootingItem} ${visibleIds.has(sh.id) ? styles.selected : styles.inactive}`}
+                        onClick={() => toggleVisibility(sh.id)}
+                      >
+                        <div className={styles.itemCheckbox}>
+                          <input
+                            type="checkbox"
+                            checked={visibleIds.has(sh.id)}
+                            onChange={() => toggleVisibility(sh.id)}
+                            className={styles.checkbox}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                        <div className={styles.itemContent}>
+                          <div className={styles.itemHeader}>
+                            <span className={styles.studentName}>{sh.student.username}</span>
+                            <span className={styles.exerciseName}>{sh.exercise.name}</span>
+                          </div>
+                          <div className={styles.itemDetails}>
+                            <span className={styles.date}>
+                              {new Date(sh.created_at).toLocaleDateString("ru-RU")}
+                            </span>
+                            <span className={styles.time}>
+                              {new Date(sh.created_at).toLocaleTimeString("ru-RU", { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </span>
+                          </div>
+                          <div className={styles.itemStats}>
+                            <span className={styles.stat}>
+                              <span className={styles.statIcon}>🎯</span>
+                              {sh.hits_count}/{sh.exercise.max_hits}
+                            </span>
+                            <span className={styles.stat}>
+                              <span className={styles.statIcon}>⏱️</span>
+                              {sh.time_spent}с
+                            </span>
+                            {sh.group && (
+                              <span className={styles.groupTag}>
+                                {sh.group.name}
+                              </span>
+                            )}
+                            {!visibleIds.has(sh.id) && (
+                              <span className={styles.inactiveBadge}>
+                                Скрыто
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className={styles.actionsFooter}>
+                  <button 
+                    className={styles.selectAllBtn}
+                    onClick={handleSelectAll}
+                  >
+                    {visibleIds.size === shootings.length ? 'Снять все' : 'Выбрать все'}
+                  </button>
+                  <button 
+                    className={styles.exportBtn}
+                    onClick={() => {
+                      // Экспортируем только видимые стрельбы
+                      const exportData = visibleShootings;
+                      alert(`Экспорт ${exportData.length} видимых стрельб`);
+                    }}
+                  >
+                    <span className={styles.exportIcon}>📥</span>
+                    Экспорт ({visibleShootings.length})
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Центральная колонка - мишень */}
+          <div className={styles.centerColumn}>
+            <div className={styles.targetContainer} ref={containerRef}>
+              <canvas ref={targetRef} className={styles.targetCanvas} />
+              <canvas ref={heatRef} className={styles.heatCanvas} />
+              <canvas ref={centerRef} className={styles.centerCanvas} />
+              <canvas ref={dotsRef} className={styles.dotsCanvas} />
+            </div>
+            <div className={styles.targetInfo}>
+              Отображается: {visibleShootings.length} из {shootings.length} стрельб
+            </div>
+          </div>
+
+          {/* Правая колонка - настройки */}
+          <div className={styles.rightColumn}>
+            <div className={styles.heatmapWidgets}>
+              <div className={styles.widgetCard}>
+                <h4 className={styles.widgetTitle}>Настройки отображения</h4>
+                
+                <div className={styles.sliderGroup}>
+                  <div className={styles.sliderControl}>
+                    <label className={styles.sliderLabel}>
+                      <span>Яркость точек</span>
+                      <span className={styles.sliderValue}>{Math.round(alphaDots * 100)}%</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1"
+                      step="0.05"
+                      value={alphaDots}
+                      onChange={(e) => setAlphaDots(Number(e.target.value))}
+                      className={styles.slider}
+                    />
+                  </div>
+
+                  <div className={styles.sliderControl}>
+                    <label className={styles.sliderLabel}>
+                      <span>Плотность тепловой карты</span>
+                      <span className={styles.sliderValue}>{Math.round(alphaHeat * 100)}%</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={alphaHeat}
+                      onChange={(e) => setAlphaHeat(Number(e.target.value))}
+                      className={styles.slider}
+                    />
+                  </div>
+
+                  <div className={styles.sliderControl}>
+                    <label className={styles.sliderLabel}>
+                      <span>Прозрачность центра</span>
+                      <span className={styles.sliderValue}>{Math.round(alphaCenter * 100)}%</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={alphaCenter}
+                      onChange={(e) => setAlphaCenter(Number(e.target.value))}
+                      className={styles.slider}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+=== Конец файла: ./frontend/src/pages/HitViewer.tsx ===
+
+=== Файл: ./frontend/src/pages/Login.tsx ===
+import { useState } from "react";
+import api from "../api";
+import styles from "../styles/Login.module.css";
+
+export default function Login() {
+  const [u, setU] = useState("");
+  const [p, setP] = useState("");
+  const [log, setLog] = useState(""); // <-- строчка-лог
+
+  const login = async () => {
+    setLog("login called");            // <-- сигнал
+    const form = new FormData();
+    form.set("username", u);
+    form.set("password", p);
+    try {
+      const { data } = await api.post("/auth/token", form);
+      setLog("token ok");              // <-- успех
+      localStorage.setItem("token", data.access_token);
+      window.location.href = "/";
+    } catch (e: any) {
+      setLog("error: " + (e?.response?.data?.detail || "network")); // <-- ошибка
+    }
+  };
+
+  return (
+    <>
+      {/* ВИДИМЫЙ ЛОГ */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          background: "#111",
+          color: "#0f0",
+          fontSize: "14px",
+          padding: "4px 8px",
+          zIndex: 9999,
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        {log || "..."}
+      </div>
+
+      {/* ваша форма */}
+      <div className={styles.wrapper} style={{ marginTop: 40 }}>
+        <h2 className={styles.title}>Вход</h2>
+
+        <label className={styles.label}>Логин</label>
+        <input
+          className={styles.input}
+          value={u}
+          onChange={(e) => setU(e.target.value)}
+        />
+
+        <label className={styles.label}>Пароль</label>
+        <input
+          className={styles.input}
+          type="password"
+          value={p}
+          onChange={(e) => setP(e.target.value)}
+        />
+
+        {/* КНОПКА С ДВУМЯ СОБЫТИЯМИ */}
+        <button
+          className={styles.btn}
+          type="button"
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            setLog("touch");
+            login();
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            setLog("click");
+            login();
+          }}
+        >
+          Войти
+        </button>
+      </div>
+    </>
+  );
+}
+=== Конец файла: ./frontend/src/pages/Login.tsx ===
+
+=== Файл: ./frontend/src/pages/Register.tsx ===
+import { useState } from "react";
+import api from "../api";
+import styles from "../styles/Register.module.css";
+
+export default function Register() {
+  const [u, setU] = useState("");
+  const [p, setP] = useState("");
+  const [code, setCode] = useState("");
+
+  const reg = async () => {
+    await api.post("/auth/register", { username: u, password: p, invite_code: code });
+    window.location.href = "/login";
+  };
+
+  return (
+    <div className={styles.wrapper}>
+      <h2 className={styles.title}>Регистрация</h2>
+
+      <label className={styles.label}>Логин</label>
+      <input className={styles.input} value={u} onChange={e => setU(e.target.value)} />
+
+      <label className={styles.label}>Пароль</label>
+      <input className={styles.input} type="password" value={p} onChange={e => setP(e.target.value)} />
+
+      <label className={styles.label}>Код приглашения</label>
+      <input className={styles.input} value={code} onChange={e => setCode(e.target.value)} />
+
+      <button className={styles.btn} onClick={reg}>Зарегистрироваться</button>
+    </div>
+  );
+}
+=== Конец файла: ./frontend/src/pages/Register.tsx ===
+
+=== Файл: ./frontend/src/pages/ResultsPage.tsx ===
+import { useCallback, useEffect, useState, useRef } from "react";
+import { getResults, getGroups, getStudents, getAvailableExercises } from "../api"; // <-- ИМПОРТ ИЗМЕНЕН
+import type { Shooting, Group, User, Exercise } from "../types";
+import HitViewer from "./HitViewer";
+import styles from "../styles/ResultsPage.module.css";
+import api from "../api";
+
+export default function ResultsPage() {
+  const [shootings, setShootings] = useState<Shooting[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [students, setStudents] = useState<User[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // фильтры
+  const [selStudent, setSelStudent] = useState<number | "">("");
+  const [selGroup, setSelGroup] = useState<number | "">("");
+  const [selExercise, setSelExercise] = useState<number | "">("");
+  const [hitsFrom, setHitsFrom] = useState<number | "">("");
+  const [hitsTo, setHitsTo] = useState<number | "">("");
+  const [timeFrom, setTimeFrom] = useState<number | "">("");
+  const [timeTo, setTimeTo] = useState<number | "">("");
+
+  // выбор стрельб для показа попаданий
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showHits, setShowHits] = useState(false);
+  
+  const allSelectedShootingsRef = useRef<Shooting[]>([]);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+
+  // Загрузка пользователя
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const { data } = await api.get<User>("/auth/me");
+        setUser(data);
+      } catch (error) {
+        console.error("Ошибка загрузки пользователя:", error);
+      }
+    };
+    
+    loadUser();
+    
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Загрузка фильтров
+  const loadFilters = useCallback(async () => {
+    try {
+      // Для преподавателей загружаем все фильтры
+      if (user?.is_teacher) {
+        const [g, s, ex] = await Promise.all([
+          getGroups().then(r => r.data),
+          getStudents().then(r => r.data),
+          getAvailableExercises().then(r => r.data), // <-- ИСПОЛЬЗУЕМ НОВЫЙ МЕТОД
+        ]);
+        setGroups(g);
+        setStudents(s);
+        setExercises(ex);
+      } else {
+        // Для студентов загружаем только упражнения
+        const ex = await getAvailableExercises();
+        setExercises(ex.data);
+      }
+    } catch (error) {
+      console.error("Ошибка загрузки фильтров:", error);
+    }
+  }, [user]);
+
+  // Загрузка результатов с фильтрами
+  const loadResults = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const params: any = {};
+      
+      // Добавляем параметры только если они заданы
+      const addParam = (key: string, value: any) => {
+        if (value !== "" && value != null) {
+          params[key] = value;
+        }
+      };
+      
+      addParam('student_id', selStudent);
+      addParam('group_id', selGroup);
+      addParam('exercise_id', selExercise);
+      addParam('hits_from', hitsFrom);
+      addParam('hits_to', hitsTo);
+      addParam('time_from', timeFrom);
+      addParam('time_to', timeTo);
+
+      console.log('Параметры фильтрации:', params);
+      const { data } = await getResults(params);
+      console.log('Получено результатов:', data.length);
+      
+      setShootings(data);
+      
+      // Обновляем выбранные стрельбы
+      const updatedSelectedShootings = allSelectedShootingsRef.current.filter(sh => 
+        data.some(newSh => newSh.id === sh.id)
+      );
+      allSelectedShootingsRef.current = updatedSelectedShootings;
+      
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        prev.forEach(id => {
+          if (!data.some(sh => sh.id === id)) {
+            next.delete(id);
+          }
+        });
+        return next;
+      });
+    } catch (error) {
+      console.error("Ошибка загрузки результатов:", error);
+      setShootings([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selStudent, selGroup, selExercise, hitsFrom, hitsTo, timeFrom, timeTo]);
+
+  // Загружаем фильтры и результаты при изменении пользователя или параметров
+  useEffect(() => {
+    if (user) {
+      loadFilters();
+      loadResults();
+    }
+  }, [user, loadFilters, loadResults]);
+
+  const resetFilters = () => {
+    setSelGroup("");
+    setSelStudent("");
+    setSelExercise("");
+    setHitsFrom("");
+    setHitsTo("");
+    setTimeFrom("");
+    setTimeTo("");
+  };
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const selectedShootings = shootings.filter(sh => selectedIds.has(sh.id));
+
+  const openPhoto = (url: string) => {
+    window.open(`${import.meta.env.VITE_API_URL}${url}`, '_blank');
+  };
+
+  const openTarget = (url: string) => {
+    window.open(`${import.meta.env.VITE_API_URL}${url}`, '_blank');
+  };
+
+  const isNewRecord = (createdAt: string) => {
+    const recordDate = new Date(createdAt);
+    const now = new Date();
+    const diffHours = (now.getTime() - recordDate.getTime()) / (1000 * 60 * 60);
+    return diffHours < 24;
+  };
+
+  return (
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <h2 className={styles.h2}>Результаты стрельб</h2>
+        <div className={styles.resultsSummary}>
+          <span className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Найдено:</span>
+            <span className={styles.summaryValue}>{shootings.length}</span>
+          </span>
+          <span className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Выбрано:</span>
+            <span className={styles.summaryValue}>{selectedIds.size}</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Блок фильтров */}
+      <div className={styles.filtersContainer}>
+        <div className={styles.filtersHeader}>
+          <span className={styles.filtersTitle}>Фильтры</span>
+          <button className={styles.clearFilters} onClick={resetFilters}>
+            Сбросить все
+          </button>
+        </div>
+
+        <div className={styles.filterGrid}>
+          {/* Упражнение */}
+          <div className={styles.filterGroup}>
+            <label className={styles.filterLabel}>Упражнение</label>
+            <select 
+              className={styles.filterSelect}
+              value={selExercise} 
+              onChange={e => setSelExercise(Number(e.target.value) || "")}
+            >
+              <option value="">Все упражнения</option>
+              {exercises.map(ex => (
+                <option key={ex.id} value={ex.id}>{ex.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Попадания */}
+          <div className={styles.filterGroup}>
+            <label className={styles.filterLabel}>Попадания</label>
+            <div className={styles.rangeInputs}>
+              <input 
+                type="number" 
+                className={styles.rangeInput}
+                placeholder="От" 
+                min={0} 
+                value={hitsFrom} 
+                onChange={e => setHitsFrom(e.target.value === "" ? "" : Number(e.target.value))} 
+              />
+              <span className={styles.rangeSeparator}>—</span>
+              <input 
+                type="number" 
+                className={styles.rangeInput}
+                placeholder="До" 
+                min={0} 
+                value={hitsTo} 
+                onChange={e => setHitsTo(e.target.value === "" ? "" : Number(e.target.value))} 
+              />
+            </div>
+          </div>
+
+          {/* Время */}
+          <div className={styles.filterGroup}>
+            <label className={styles.filterLabel}>Время (сек)</label>
+            <div className={styles.rangeInputs}>
+              <input 
+                type="number" 
+                className={styles.rangeInput}
+                placeholder="От" 
+                min={0} 
+                value={timeFrom} 
+                onChange={e => setTimeFrom(e.target.value === "" ? "" : Number(e.target.value))} 
+              />
+              <span className={styles.rangeSeparator}>—</span>
+              <input 
+                type="number" 
+                className={styles.rangeInput}
+                placeholder="До" 
+                min={0} 
+                value={timeTo} 
+                onChange={e => setTimeTo(e.target.value === "" ? "" : Number(e.target.value))} 
+              />
+            </div>
+          </div>
+
+          {/* Фильтры только для преподавателя */}
+          {user?.is_teacher && (
+            <>
+              <div className={styles.filterGroup}>
+                <label className={styles.filterLabel}>Группа</label>
+                <select 
+                  className={styles.filterSelect}
+                  value={selGroup} 
+                  onChange={e => setSelGroup(Number(e.target.value) || "")}
+                >
+                  <option value="">Все группы</option>
+                  {groups.map(g => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label className={styles.filterLabel}>Ученик</label>
+                <select 
+                  className={styles.filterSelect}
+                  value={selStudent} 
+                  onChange={e => setSelStudent(Number(e.target.value) || "")}
+                >
+                  <option value="">Все ученики</option>
+                  {students.map(s => (
+                    <option key={s.id} value={s.id}>{s.username}</option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Индикатор загрузки */}
+      {isLoading ? (
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p className={styles.loadingText}>Загрузка результатов...</p>
+        </div>
+      ) : (
+        <>
+          {/* Мобильная версия - карточки */}
+          {isMobile ? (
+            <div className={styles.resultCards}>
+              {shootings.length > 0 ? (
+                shootings.map(sh => (
+                  <div 
+                    key={sh.id} 
+                    className={`${styles.resultCard} ${selectedIds.has(sh.id) ? styles.selectedCard : ''}`}
+                  >
+                    <div className={styles.cardHeader}>
+                      <div className={styles.cardHeaderLeft}>
+                        <input
+                          type="checkbox"
+                          className={styles.cardCheckbox}
+                          checked={selectedIds.has(sh.id)}
+                          onChange={() => toggleSelect(sh.id)}
+                        />
+                        <div className={styles.cardStudentInfo}>
+                          <div className={styles.studentName}>{sh.student.username}</div>
+                          <div className={styles.cardDate}>
+                            {new Date(sh.created_at).toLocaleDateString("ru-RU")}
+                          </div>
+                        </div>
+                      </div>
+                      <div className={styles.cardHeaderRight}>
+                        {isNewRecord(sh.created_at) && (
+                          <span className={styles.newBadge}>NEW</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className={styles.cardContent}>
+                      <div className={styles.exerciseInfo}>
+                        <span className={styles.exerciseName}>{sh.exercise.name}</span>
+                        {sh.group && (
+                          <span className={styles.groupTag}>{sh.group.name}</span>
+                        )}
+                      </div>
+
+                      {sh.note && (
+                        <div className={styles.cardNote}>
+                          <span className={styles.noteIcon}>📝</span>
+                          <span className={styles.noteText}>{sh.note}</span>
+                        </div>
+                      )}
+
+                      <div className={styles.cardStats}>
+                        <div className={styles.statItem}>
+                          <div className={styles.statLabel}>Попаданий</div>
+                          <div className={`${styles.statValue} ${sh.hits_count >= sh.exercise.max_hits ? styles.statMax : ''}`}>
+                            {sh.hits_count} / {sh.exercise.max_hits}
+                          </div>
+                          <div className={styles.statBar}>
+                            <div 
+                              className={styles.statBarFill}
+                              style={{ width: `${(sh.hits_count / sh.exercise.max_hits) * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        <div className={styles.statItem}>
+                          <div className={styles.statLabel}>Время</div>
+                          <div className={styles.statValue}>
+                            {sh.time_spent}с
+                          </div>
+                          {sh.exercise.time_sec && (
+                            <div className={styles.statBar}>
+                              <div 
+                                className={`${styles.statBarFill} ${sh.time_spent <= sh.exercise.time_sec ? styles.timeOk : styles.timeOver}`}
+                                style={{ 
+                                  width: `${Math.min((sh.time_spent / sh.exercise.time_sec) * 100, 100)}%` 
+                                }}
+                              ></div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className={styles.cardActions}>
+                        <button 
+                          className={styles.cardActionBtn}
+                          onClick={() => openPhoto(sh.photo_url)}
+                          title="Открыть фото"
+                        >
+                          <span className={styles.actionIcon}>Фото</span>
+                          <span className={styles.actionText}>Фото</span>
+                        </button>
+                        <button 
+                          className={styles.cardActionBtn}
+                          onClick={() => toggleSelect(sh.id)}
+                          title={selectedIds.has(sh.id) ? "Снять выбор" : "Выбрать"}
+                        >
+                          <span className={styles.actionIcon}>
+                            {selectedIds.has(sh.id) ? "✓" : "○"}
+                          </span>
+                          <span className={styles.actionText}>
+                            {selectedIds.has(sh.id) ? "Выбрано" : "Выбрать"}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyResults}>
+                  <div className={styles.emptyIcon}>🎯</div>
+                  <p className={styles.emptyTitle}>Стрельбы не найдены</p>
+                  <p className={styles.emptyText}>Попробуйте изменить параметры фильтров</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Десктопная версия - таблица */
+            <div className={styles.tableContainer}>
+              {shootings.length > 0 ? (
+                <>
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.table}>
+                      <thead>
+                        <tr>
+                          <th className={styles.colCheckbox}>
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.size === shootings.length && shootings.length > 0}
+                              onChange={() => {
+                                if (selectedIds.size === shootings.length) {
+                                  // Снимаем все
+                                  setSelectedIds(new Set());
+                                  allSelectedShootingsRef.current = [];
+                                } else {
+                                  // Выбираем все
+                                  const newSelectedIds = new Set(shootings.map(sh => sh.id));
+                                  setSelectedIds(newSelectedIds);
+                                  allSelectedShootingsRef.current = [...shootings];
+                                }
+                              }}
+                              className={styles.headerCheckbox}
+                            />
+                          </th>
+                          <th className={styles.colDate}>Дата</th>
+                          <th className={styles.colStudent}>Ученик</th>
+                          <th className={styles.colGroup}>Группа</th>
+                          <th className={styles.colExercise}>Упражнение</th>
+                          <th className={styles.colHits}>Попаданий</th>
+                          <th className={styles.colTime}>Время</th>
+                          <th className={styles.colActions}>Действия</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {shootings.map(sh => (
+                          <tr 
+                            key={sh.id} 
+                            className={`${styles.tableRow} ${selectedIds.has(sh.id) ? styles.selectedRow : ''}`}
+                          >
+                            <td className={styles.colCheckbox}>
+                              <div className={styles.checkboxWrapper}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedIds.has(sh.id)}
+                                  onChange={() => toggleSelect(sh.id)}
+                                  className={styles.checkbox}
+                                />
+                              </div>
+                            </td>
+                            <td className={styles.colDate}>
+                              <div className={styles.dateCell}>
+                                <div className={styles.date}>
+                                  {new Date(sh.created_at).toLocaleDateString('ru-RU')}
+                                </div>
+                                <div className={styles.time}>
+                                  {new Date(sh.created_at).toLocaleTimeString('ru-RU', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </div>
+                                {isNewRecord(sh.created_at) && (
+                                  <span className={styles.newIndicator}>NEW</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className={styles.colStudent}>
+                              <div className={styles.studentCell}>
+                                <span className={styles.studentName}>{sh.student.username}</span>
+                                {sh.note && (
+                                  <div 
+                                    className={styles.noteIndicator}
+                                    title={sh.note}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      alert(sh.note);
+                                    }}
+                                  >
+                                    <span className={styles.noteIcon}>📝</span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className={styles.colGroup}>
+                              {sh.group ? (
+                                <span className={styles.groupBadge}>
+                                  {sh.group.name}
+                                </span>
+                              ) : (
+                                <span className={styles.noGroup}>—</span>
+                              )}
+                            </td>
+                            <td className={styles.colExercise}>
+                              <div className={styles.exerciseCell}>
+                                <div className={styles.exerciseName}>{sh.exercise.name}</div>
+                                <div className={styles.exerciseStats}>
+                                  <span className={styles.statBadge}>
+                                    Макс: {sh.exercise.max_hits}
+                                  </span>
+                                  {sh.exercise.time_sec && (
+                                    <span className={styles.statBadge}>
+                                      Лимит: {sh.exercise.time_sec}с
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className={styles.colHits}>
+                              <div className={styles.hitsCell}>
+                                <div className={`${styles.hitsValue} ${sh.hits_count >= sh.exercise.max_hits ? styles.hitsMax : ''}`}>
+                                  {sh.hits_count}
+                                </div>
+                                <div className={styles.hitsProgress}>
+                                  <div 
+                                    className={styles.hitsProgressBar}
+                                    style={{ 
+                                      width: `${Math.min((sh.hits_count / sh.exercise.max_hits) * 100, 100)}%` 
+                                    }}
+                                  ></div>
+                                </div>
+                                <div className={styles.hitsLabel}>
+                                  из {sh.exercise.max_hits}
+                                </div>
+                              </div>
+                            </td>
+                            <td className={styles.colTime}>
+                              <div className={styles.timeCell}>
+                                <div className={styles.timeValue}>
+                                  {sh.time_spent}с
+                                </div>
+                                {sh.exercise.time_sec && (
+                                  <div className={styles.timeProgress}>
+                                    <div 
+                                      className={`${styles.timeProgressBar} ${sh.time_spent <= sh.exercise.time_sec ? styles.timeOk : styles.timeOver}`}
+                                      style={{ 
+                                        width: `${Math.min((sh.time_spent / sh.exercise.time_sec) * 100, 100)}%` 
+                                      }}
+                                    ></div>
+                                  </div>
+                                )}
+                                <div className={styles.timeLabel}>
+                                  {sh.exercise.time_sec ? `из ${sh.exercise.time_sec}с` : 'без лимита'}
+                                </div>
+                              </div>
+                            </td>
+                            <td className={styles.colActions}>
+                              <div className={styles.actionsCell}>
+                                <button 
+                                  className={styles.actionBtn}
+                                  onClick={() => openPhoto(sh.photo_url)}
+                                  title="Открыть фото"
+                                >
+                                  <span className={styles.actionIcon}>📷</span>
+                                </button>
+                                <button 
+                                  className={styles.actionBtn}
+                                  onClick={() => openTarget(sh.exercise.target_url)}
+                                  title="Открыть мишень"
+                                >
+                                  <span className={styles.actionIcon}>🎯</span>
+                                </button>
+                                <button 
+                                  className={styles.actionBtn}
+                                  onClick={() => toggleSelect(sh.id)}
+                                  title={selectedIds.has(sh.id) ? "Снять выбор" : "Выбрать для анализа"}
+                                >
+                                  <span className={styles.actionIcon}>
+                                    {selectedIds.has(sh.id) ? "✓" : "+"}
+                                  </span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Итоговая статистика для десктопа */}
+                  {shootings.length > 0 && (
+                    <div className={styles.tableFooter}>
+                      <div className={styles.footerStats}>
+                        <div className={styles.footerStat}>
+                          <span className={styles.footerStatLabel}>Среднее попаданий:</span>
+                          <span className={styles.footerStatValue}>
+                            {(shootings.reduce((sum, sh) => sum + sh.hits_count, 0) / shootings.length).toFixed(1)}
+                          </span>
+                        </div>
+                        <div className={styles.footerStat}>
+                          <span className={styles.footerStatLabel}>Среднее время:</span>
+                          <span className={styles.footerStatValue}>
+                            {(shootings.reduce((sum, sh) => sum + sh.time_spent, 0) / shootings.length).toFixed(1)}с
+                          </span>
+                        </div>
+                        <div className={styles.footerStat}>
+                          <span className={styles.footerStatLabel}>Лучший результат:</span>
+                          <span className={styles.footerStatValue}>
+                            {Math.max(...shootings.map(sh => sh.hits_count))}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className={styles.emptyResults}>
+                  <div className={styles.emptyIcon}>🎯</div>
+                  <p className={styles.emptyTitle}>Стрельбы не найдены</p>
+                  <p className={styles.emptyText}>Попробуйте изменить параметры фильтров</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Панель действий для мобильных */}
+          {isMobile && shootings.length > 0 && (
+            <div className={styles.actionsBar}>
+              <div className={styles.actionsBarContent}>
+                <div className={styles.actionsBarInfo}>
+                  <span className={styles.actionsBarText}>
+                    Выбрано: <strong>{selectedIds.size}</strong>
+                  </span>
+                  {selectedIds.size > 0 && (
+                    <button 
+                      className={styles.clearSelectionBtn}
+                      onClick={() => {
+                        setSelectedIds(new Set());
+                        allSelectedShootingsRef.current = [];
+                      }}
+                    >
+                      Сбросить
+                    </button>
+                  )}
+                </div>
+                <button 
+                  className={`${styles.primaryActionBtn} ${selectedIds.size === 0 ? styles.disabled : ''}`}
+                  onClick={() => selectedIds.size > 0 && setShowHits(true)}
+                  disabled={selectedIds.size === 0}
+                >
+                  <span className={styles.actionBtnIcon}>📊</span>
+                  Анализ ({selectedIds.size})
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Кнопки для десктопной версии */}
+          {!isMobile && selectedIds.size > 0 && (
+            <div className={styles.desktopActions}>
+              <div className={styles.desktopActionsInfo}>
+                <span className={styles.selectionInfo}>
+                  Выбрано стрельб: <strong>{selectedIds.size}</strong>
+                </span>
+                <button 
+                  className={styles.clearSelectionBtn}
+                  onClick={() => {
+                    setSelectedIds(new Set());
+                    allSelectedShootingsRef.current = [];
+                  }}
+                >
+                  Сбросить выбор
+                </button>
+              </div>
+              <button 
+                className={styles.primaryActionBtn}
+                onClick={() => setShowHits(true)}
+              >
+                <span className={styles.actionBtnIcon}>📊</span>
+                Показать анализ попаданий
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Модалка с HitViewer */}
+      {showHits && (
+        <HitViewer
+          shootings={selectedShootings} // Все выбранные стрельбы
+          onClose={() => setShowHits(false)}
+          // Не передаем selectedIds и onToggle - HitViewer полностью независим
+        />
+      )}
+    </div>
+  );
+}
+=== Конец файла: ./frontend/src/pages/ResultsPage.tsx ===
+
+=== Файл: ./frontend/src/pages/ShootingForm.tsx ===
+// src/components/ShootingForm.tsx
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getAvailableExercises } from "../api";
+import type { Exercise, Group } from "../types";
+import styles from "../styles/ShootingForm.module.css";
+import api from "../api";
+
+type Point = { x: number; y: number };
+
+export default function ShootingForm() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [timeSpent, setTimeSpent] = useState<number | "">("");
+  const [hitsCount, setHitsCount] = useState<number | "">("");
+  const [note, setNote] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [marks, setMarks] = useState<Point[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selEx, setSelEx] = useState<number | "">("");
+  const [selGroup, setSelGroup] = useState<number | "">("");
+  const [maxHits, setMaxHits] = useState(10);
+  const [timerSec, setTimerSec] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
+  const [lastClickCoords, setLastClickCoords] = useState({ x: 0, y: 0 });
+
+  // Определение типа устройства
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const loadEx = useCallback(async () => {
+    try {
+      const { data } = await getAvailableExercises();
+      setExercises(data);
+    } catch (error) {
+      alert("Ошибка загрузки упражнений");
+    }
+  }, []);
+
+  const loadGroups = useCallback(async () => {
+    try {
+      const { data } = await api.get("/groups");
+      setGroups(data);
+    } catch (error) {
+      console.error("Ошибка загрузки групп:", error);
+    }
+  }, []);
+
+  useEffect(() => { 
+    loadEx(); 
+    loadGroups();
+  }, [loadEx, loadGroups]);
+
+  useEffect(() => {
+    const ex = exercises.find(e => e.id === Number(selEx));
+    if (!ex) return;
+    
+    setMaxHits(ex.max_hits);
+    setTimerSec(ex.time_sec);
+    setHitsCount(ex.max_hits);
+    setTimeSpent(ex.time_sec || "");
+    setMarks([]);
+    
+    if (ex.target_url) {
+      drawTarget(ex.target_url);
+    }
+  }, [selEx, exercises]);
+
+  const drawTarget = useCallback((targetUrl: string) => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      console.log('Canvas ref is null');
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      console.log('Canvas context not available');
+      return;
+    }
+
+    // Сначала очищаем canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = `${import.meta.env.VITE_API_URL}${targetUrl}`;
+    
+    img.onload = () => {
+      if (!canvas || !ctx) return;
+
+      // Рассчитываем размеры для canvas
+      const containerWidth = containerRef.current?.clientWidth || 300;
+      const targetAspectRatio = 3/4;
+      const canvasWidth = Math.min(containerWidth - 32, 400);
+      const canvasHeight = canvasWidth / targetAspectRatio;
+
+      // Устанавливаем размеры canvas
+      if (canvas.width !== canvasWidth) canvas.width = canvasWidth;
+      if (canvas.height !== canvasHeight) canvas.height = canvasHeight;
+
+      // Рисуем мишень с сохранением пропорций
+      const scale = Math.min(
+        canvasWidth / img.naturalWidth,
+        canvasHeight / img.naturalHeight
+      );
+      const drawWidth = img.naturalWidth * scale;
+      const drawHeight = img.naturalHeight * scale;
+      const offsetX = (canvasWidth - drawWidth) / 2;
+      const offsetY = (canvasHeight - drawHeight) / 2;
+
+      // Сохраняем размеры области мишени для обработки кликов
+      const targetArea = { offsetX, offsetY, drawWidth, drawHeight };
+      (canvas as any).targetArea = targetArea;
+
+      // Фон
+      ctx.fillStyle = "#f9fafb";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      
+      // Мишень
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+      // Обводка области мишени (легкая для визуального ориентира)
+      ctx.strokeStyle = "rgba(99, 102, 241, 0.3)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(offsetX, offsetY, drawWidth, drawHeight);
+
+      // Отладочная информация
+      if (debugMode) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+        ctx.fillRect(offsetX, offsetY, drawWidth, drawHeight);
+        
+        // Сетка для отладки
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.2)";
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i <= 10; i++) {
+          const x = offsetX + (i / 10) * drawWidth;
+          const y = offsetY + (i / 10) * drawHeight;
+          
+          // Вертикальные линии
+          ctx.beginPath();
+          ctx.moveTo(x, offsetY);
+          ctx.lineTo(x, offsetY + drawHeight);
+          ctx.stroke();
+          
+          // Горизонтальные линии
+          ctx.beginPath();
+          ctx.moveTo(offsetX, y);
+          ctx.lineTo(offsetX + drawWidth, y);
+          ctx.stroke();
+        }
+        
+        // Отметка центра
+        ctx.fillStyle = "blue";
+        ctx.beginPath();
+        ctx.arc(offsetX + drawWidth/2, offsetY + drawHeight/2, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Перерисовываем метки
+      marks.forEach((mark, index) => {
+        const x = offsetX + (mark.x * drawWidth);
+        const y = offsetY + (mark.y * drawHeight);
+        
+        // Проверяем, что координаты внутри области мишени
+        if (x < offsetX || x > offsetX + drawWidth || y < offsetY || y > offsetY + drawHeight) {
+          console.warn(`Mark ${index} out of bounds:`, { x, y, offsetX, offsetY, drawWidth, drawHeight });
+          return;
+        }
+
+        // Большой красный кружок с обводкой (увеличил размер)
+        const radius = isMobile ? 10 : 8;
+        
+        // Белая обводка
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Красный кружок
+        ctx.fillStyle = "#ef4444";
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Черная тонкая обводка для четкости
+        ctx.strokeStyle = "#1f2937";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Номер попадания (белый текст)
+        ctx.fillStyle = "white";
+        ctx.font = `bold ${isMobile ? '11' : '9'}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText((index + 1).toString(), x, y);
+      });
+
+      console.log('Canvas drawn with', marks.length, 'marks. Target area:', targetArea);
+    };
+
+    img.onerror = () => {
+      console.error("Ошибка загрузки мишени:", targetUrl);
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      if (!canvas || !ctx) return;
+      
+      ctx.fillStyle = "#f3f4f6";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#6b7280";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "14px Arial";
+      ctx.fillText("Мишень не загружена", canvas.width/2, canvas.height/2);
+    };
+  }, [marks, isMobile, debugMode]);
+
+  // Перерисовываем мишень при изменении меток или отладки
+  useEffect(() => {
+    if (selEx) {
+      const ex = exercises.find(e => e.id === Number(selEx));
+      if (ex && ex.target_url) {
+        drawTarget(ex.target_url);
+      }
+    }
+  }, [marks, debugMode, drawTarget, selEx, exercises]);
+
+  const handleCanvasInteraction = useCallback((clientX: number, clientY: number) => {
+    if (marks.length >= maxHits || !selEx) {
+      console.log('Cannot add mark:', { marksLength: marks.length, maxHits, selEx });
+      return;
+    }
+    
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      console.log('No canvas element');
+      return;
+    }
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
+    
+    setLastClickCoords({ x: Math.round(x), y: Math.round(y) });
+
+    const ex = exercises.find(e => e.id === Number(selEx));
+    if (!ex || !ex.target_url) {
+      console.log('No exercise or target URL');
+      return;
+    }
+
+    // Используем сохраненную targetArea или вычисляем
+    let targetArea = (canvas as any).targetArea;
+    if (!targetArea) {
+      console.log('Target area not found, calculating...');
+      const img = new Image();
+      img.src = `${import.meta.env.VITE_API_URL}${ex.target_url}`;
+      
+      if (img.complete) {
+        const scale = Math.min(
+          canvas.width / img.naturalWidth,
+          canvas.height / img.naturalHeight
+        );
+        const drawWidth = img.naturalWidth * scale;
+        const drawHeight = img.naturalHeight * scale;
+        const offsetX = (canvas.width - drawWidth) / 2;
+        const offsetY = (canvas.height - drawHeight) / 2;
+        
+        targetArea = { offsetX, offsetY, drawWidth, drawHeight };
+      } else {
+        img.onload = () => {
+          const scale = Math.min(
+            canvas.width / img.naturalWidth,
+            canvas.height / img.naturalHeight
+          );
+          const drawWidth = img.naturalWidth * scale;
+          const drawHeight = img.naturalHeight * scale;
+          const offsetX = (canvas.width - drawWidth) / 2;
+          const offsetY = (canvas.height - drawHeight) / 2;
+          
+          processClick({ offsetX, offsetY, drawWidth, drawHeight }, x, y);
+        };
+        return;
+      }
+    }
+    
+    processClick(targetArea, x, y);
+  }, [marks.length, maxHits, selEx, exercises]);
+
+  const processClick = useCallback((targetArea: { offsetX: number, offsetY: number, drawWidth: number, drawHeight: number }, x: number, y: number) => {
+    console.log('Processing click:', { x, y, targetArea });
+    
+    // Проверяем попадание в мишень
+    if (
+      x < targetArea.offsetX ||
+      x > targetArea.offsetX + targetArea.drawWidth ||
+      y < targetArea.offsetY ||
+      y > targetArea.offsetY + targetArea.drawHeight
+    ) {
+      console.log('Click outside target area');
+      return;
+    }
+
+    // Координаты относительно мишени (0-1)
+    const xInTarget = (x - targetArea.offsetX) / targetArea.drawWidth;
+    const yInTarget = (y - targetArea.offsetY) / targetArea.drawHeight;
+
+    // Проверяем и корректируем диапазон
+    const clampedX = Math.max(0, Math.min(1, xInTarget));
+    const clampedY = Math.max(0, Math.min(1, yInTarget));
+
+    console.log('Target coordinates:', { xInTarget, yInTarget, clampedX, clampedY });
+
+    const newMark = { 
+      x: Math.round(clampedX * 10000) / 10000, 
+      y: Math.round(clampedY * 10000) / 10000 
+    };
+
+    console.log('Adding new mark:', newMark);
+    setMarks(prev => [...prev, newMark]);
+  }, []);
+
+  const handleMouseClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleCanvasInteraction(e.clientX, e.clientY);
+  }, [handleCanvasInteraction]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const touch = e.touches[0];
+    handleCanvasInteraction(touch.clientX, touch.clientY);
+  }, [handleCanvasInteraction]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        alert("Файл слишком большой. Максимум 10MB");
+        return;
+      }
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+    }
+  };
+
+  const validateForm = () => {
+    if (!selEx) {
+      alert("Выберите упражнение");
+      return false;
+    }
+    if (!file) {
+      alert("Добавьте фото стрельбы");
+      return false;
+    }
+    if (marks.length === 0) {
+      alert("Добавьте хотя бы одну метку на мишени");
+      return false;
+    }
+    if (hitsCount === "" || Number(hitsCount) > maxHits) {
+      alert(`Количество попаданий не может превышать ${maxHits}`);
+      return false;
+    }
+    if (timerSec > 0 && (timeSpent === "" || Number(timeSpent) > timerSec)) {
+      alert(`Время стрельбы не может превышать ${timerSec} секунд`);
+      return false;
+    }
+    return true;
+  };
+
+  const submit = async () => {
+    if (!validateForm() || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      const form = new FormData();
+      form.append("exercise_id", String(selEx));
+      form.append("note", note);
+      form.append("canvas_json", JSON.stringify(marks));
+      form.append("time_spent", String(timeSpent || 0));
+      form.append("hits_count", String(hitsCount));
+      form.append("photo", file!);
+      
+      // Добавляем group_id если выбрана группа
+      if (selGroup) {
+        form.append("group_id", String(selGroup));
+      }
+
+      await api.post("/shootings", form);
+      
+      alert("Сохранено ✓");
+      
+      // Сброс формы
+      setMarks([]);
+      setFile(null);
+      setFileName("");
+      setNote("");
+      setHitsCount("");
+      setTimeSpent("");
+      setSelEx("");
+      setSelGroup("");
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert("Ошибка сохранения");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const removeMark = (index: number) => {
+    setMarks(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const clearAllMarks = () => {
+    setMarks([]);
+  };
+
+  const addTestMark = (position: 'center' | 'random') => {
+    if (marks.length >= maxHits) return;
+    
+    let x, y;
+    if (position === 'center') {
+      x = 0.5;
+      y = 0.5;
+    } else {
+      x = Math.random() * 0.8 + 0.1; // 0.1 - 0.9
+      y = Math.random() * 0.8 + 0.1;
+    }
+    
+    setMarks(prev => [...prev, { x, y }]);
+  };
+
+  return (
+    <div className={styles.form}>
+      <h2 className={styles.title}>Добавить стрельбу</h2>
+
+      {/* Отладочная панель */}
+      {debugMode && (
+        <div className={styles.debugPanel}>
+          <div className={styles.debugHeader}>
+            <span>Отладочная информация</span>
+            <button 
+              className={styles.debugClose}
+              onClick={() => setDebugMode(false)}
+            >
+              ×
+            </button>
+          </div>
+          <div className={styles.debugContent}>
+            <div>Меток: {marks.length} / {maxHits}</div>
+            <div>Упражнение ID: {selEx || 'не выбрано'}</div>
+            <div>Группа ID: {selGroup || 'не выбрана'}</div>
+            <div>Canvas: {canvasRef.current ? `${canvasRef.current.width}×${canvasRef.current.height}` : 'не загружен'}</div>
+            <div>Последний клик: {lastClickCoords.x}, {lastClickCoords.y}</div>
+            <div>Последняя метка: {marks.length > 0 ? 
+              `X: ${(marks[marks.length-1].x*100).toFixed(1)}%, Y: ${(marks[marks.length-1].y*100).toFixed(1)}%` : 
+              'нет'
+            }</div>
+            <div className={styles.debugButtons}>
+              <button 
+                className={styles.debugBtn}
+                onClick={() => addTestMark('center')}
+              >
+                Тест: центр
+              </button>
+              <button 
+                className={styles.debugBtn}
+                onClick={() => addTestMark('random')}
+              >
+                Тест: случайно
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Упражнение *</label>
+        <select 
+          className={styles.select}
+          value={selEx} 
+          onChange={e => setSelEx(Number(e.target.value))}
+        >
+          <option value="">– выберите упражнение –</option>
+          {exercises.map(ex => (
+            <option key={ex.id} value={ex.id}>{ex.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Добавляем поле выбора группы */}
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Группа</label>
+        <select 
+          className={styles.select}
+          value={selGroup} 
+          onChange={e => setSelGroup(Number(e.target.value) || "")}
+        >
+          <option value="">– без группы –</option>
+          {groups.map(g => (
+            <option key={g.id} value={g.id}>{g.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {selEx && (
+        <>
+          <div className={styles.stats}>
+            <div className={styles.statItem}>
+              <span className={styles.statLabel}>Макс. попаданий:</span>
+              <span className={styles.statValue}>{maxHits}</span>
+            </div>
+            <div className={styles.statItem}>
+              <span className={styles.statLabel}>Время:</span>
+              <span className={styles.statValue}>
+                {timerSec ? `${timerSec} с` : '∞'}
+              </span>
+            </div>
+            <div className={styles.statItem}>
+              <span className={styles.statLabel}>Режим:</span>
+              <span className={styles.statValue}>
+                {isMobile ? 'Мобильный' : 'Десктоп'}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.grid}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Попадания *</label>
+              <input 
+                type="number" 
+                className={styles.input}
+                min="0"
+                max={maxHits}
+                value={hitsCount}
+                onChange={e => setHitsCount(e.target.value === "" ? "" : Number(e.target.value))}
+                placeholder="0"
+              />
+              <div className={styles.hint}>
+                <span className={marks.length === maxHits ? styles.hintFull : ''}>
+                  Добавлено: {marks.length} из {maxHits}
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                Время, сек {timerSec > 0 && `(до ${timerSec})`}
+              </label>
+              <input 
+                type="number" 
+                className={styles.input}
+                min="0"
+                max={timerSec || undefined}
+                value={timeSpent}
+                onChange={e => setTimeSpent(e.target.value === "" ? "" : Number(e.target.value))}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div className={styles.canvasContainer} ref={containerRef}>
+            <div className={styles.canvasHeader}>
+              <div className={styles.canvasTitleWrapper}>
+                <span className={styles.canvasTitle}>Мишень</span>
+                {marks.length > 0 && (
+                  <span className={styles.marksCounter}>
+                    <span className={styles.marksCounterBadge}>
+                      {marks.length} из {maxHits}
+                    </span>
+                  </span>
+                )}
+              </div>
+              <div className={styles.canvasActions}>
+                {marks.length > 0 && (
+                  <button 
+                    className={styles.clearBtn}
+                    onClick={clearAllMarks}
+                    type="button"
+                  >
+                    Очистить все
+                  </button>
+                )}
+                {process.env.NODE_ENV === 'development' && (
+                  <button 
+                    className={styles.debugToggle}
+                    onClick={() => setDebugMode(!debugMode)}
+                    type="button"
+                  >
+                    {debugMode ? '❌' : '🐛'}
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            <div className={styles.canvasWrapper}>
+              <canvas 
+                ref={canvasRef} 
+                className={styles.canvas}
+                onClick={handleMouseClick}
+                onTouchStart={handleTouchStart}
+              />
+              {marks.length === 0 && (
+                <div className={styles.canvasOverlay}>
+                  <div className={styles.canvasInstruction}>
+                    {isMobile ? (
+                      <>Тапните на мишени, чтобы добавить попадание</>
+                    ) : (
+                      <>Кликните на мишени, чтобы добавить попадание</>
+                    )}
+                    <div className={styles.canvasInstructionSub}>
+                      Добавлено: {marks.length} из {maxHits}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className={styles.canvasHint}>
+              {marks.length >= maxHits ? (
+                <span className={styles.hintFull}>
+                  <span className={styles.hintIcon}>✓</span>
+                  Достигнут максимум попаданий
+                </span>
+              ) : (
+                <>
+                  <span className={styles.hintDot}>•</span>
+                  {isMobile 
+                    ? "Тапните на мишени для отметки попаданий" 
+                    : "Кликните на мишени для отметки попаданий"
+                  }
+                  <span className={styles.hintCounter}>
+                    ({marks.length}/{maxHits})
+                  </span>
+                </>
+              )}
+            </div>
+
+            {marks.length > 0 && (
+              <div className={styles.marksList}>
+                <div className={styles.marksHeader}>
+                  <span className={styles.marksTitle}>Добавленные попадания:</span>
+                  <span className={styles.marksCount}>{marks.length} шт.</span>
+                </div>
+                <div className={styles.marksGrid}>
+                  {marks.map((mark, index) => (
+                    <div key={index} className={styles.markItem}>
+                      <div className={styles.markHeader}>
+                        <div className={styles.markIndexWrapper}>
+                          <span className={styles.markIndex}>#{index + 1}</span>
+                          <div className={styles.markPreview}>
+                            <div 
+                              className={styles.markPreviewDot}
+                              style={{
+                                left: `${mark.x * 100}%`,
+                                top: `${mark.y * 100}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <button 
+                          className={styles.markRemove}
+                          onClick={() => removeMark(index)}
+                          type="button"
+                          aria-label="Удалить метку"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className={styles.markCoords}>
+                        <span data-label="X:">{(mark.x * 100).toFixed(1)}</span>
+                        <span data-label="Y:">{(mark.y * 100).toFixed(1)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Примечание</label>
+        <textarea 
+          className={styles.textarea}
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          placeholder="Дополнительные заметки..."
+          rows={3}
+        />
+      </div>
+
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Фото стрельбы *</label>
+        <div className={styles.fileUpload}>
+          <input
+            type="file"
+            id="photo"
+            accept="image/*"
+            className={styles.fileInput}
+            onChange={handleFileChange}
+            capture={isMobile ? "environment" : undefined}
+          />
+          <label htmlFor="photo" className={styles.fileLabel}>
+            <svg className={styles.fileIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            <span className={styles.fileText}>
+              {fileName || (isMobile ? "Сфотографировать или выбрать файл" : "Выбрать файл")}
+            </span>
+            {fileName && (
+              <span className={styles.fileName}>{fileName}</span>
+            )}
+          </label>
+        </div>
+        <div className={styles.fileHint}>Формат: JPG, PNG • Макс. 10MB</div>
+      </div>
+
+      <button 
+        className={`${styles.submitBtn} ${isSubmitting ? styles.submitting : ''}`}
+        onClick={submit}
+        disabled={isSubmitting || !selEx || !file || marks.length === 0}
+      >
+        {isSubmitting ? (
+          <>
+            <span className={styles.spinner}></span>
+            Сохранение...
+          </>
+        ) : (
+          'Сохранить стрельбу'
+        )}
+      </button>
+    </div>
+  );
+}
+=== Конец файла: ./frontend/src/pages/ShootingForm.tsx ===
+
+=== Файл: ./frontend/src/pages/StudentDashboard.tsx ===
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import api from "../api";
+import type { Shooting, Group } from "../types";
+import styles from "../styles/StudentDashboard.module.css";
+
+export default function StudentDashboard() {
+  const [shootings, setShootings] = useState<Shooting[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+
+  const load = useCallback(async () => {
+    const [s, g] = await Promise.all([
+      api.get("/shootings").then(r => r.data),
+      api.get("/groups").then(r => r.data),
+    ]);
+    setShootings(s);
+    setGroups(g);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <div className={styles.page}>
+        <h2 className={styles.h2}>Личный кабинет стрелка</h2>
+
+        <h3 className={styles.h3}>Мои группы</h3>
+        {groups.length ? (
+        <ul className={styles.list}>
+            {groups.map((gr) => (
+            <li key={gr.id}>{gr.name}</li>
+            ))}
+        </ul>
+        ) : (
+        <p className={styles.empty}>Вы пока не состоите ни в одной группе.</p>
+        )}
+
+        <Link to="/shooting">
+        <button className={styles.addBtn}>Добавить стрельбу</button>
+        </Link>
+
+        <h3 className={styles.h3}>Мои результаты</h3>
+        {shootings.length ? (
+        <table className={styles.table}>
+            <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Упражнение</th>
+                <th>Примечание</th>
+                <th>Фото</th>
+            </tr>
+            </thead>
+            <tbody>
+            {shootings.map((sh) => (
+                <tr key={sh.id}>
+                <td>{new Date(sh.created_at).toLocaleString("ru-RU")}</td>
+                {/*  ГЛАВНОЕ ИСПРАВЛЕНИЕ  */}
+                <td>{sh.exercise.name}</td>
+                <td>{sh.note || "—"}</td>
+                <td>
+                    <a
+                    href={`${import.meta.env.VITE_API_URL}${sh.photo_url}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    >
+                    <img
+                        className={styles.img}
+                        src={`${import.meta.env.VITE_API_URL}${sh.photo_url}`}
+                        alt="shot"
+                    />
+                    </a>
+                </td>
+                </tr>
+            ))}
+            </tbody>
+        </table>
+        ) : (
+        <p className={styles.empty}>Ещё нет сохранённых стрельб.</p>
+        )}
+    </div>
+    );
+}
+=== Конец файла: ./frontend/src/pages/StudentDashboard.tsx ===
+
+=== Файл: ./frontend/src/pages/TeacherDashboard.tsx ===
+import { useCallback, useEffect, useState } from "react";
+import api, { getExercises } from "../api";
+import type { Group, User, Exercise } from "../types";
+import styles from "../styles/TeacherDashboard.module.css";
+import AddExercise from "./AddExercise";
+
+export default function TeacherDashboard() {
+  /* ----------- группы ----------- */
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [groupName, setGroupName] = useState("");
+
+  /* ----------- ученики ----------- */
+  const [students, setStudents] = useState<User[]>([]);
+  const [showCreateSt, setShowCreateSt] = useState(false);
+  const [newLogin, setNewLogin] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [newGroupId, setNewGroupId] = useState<number | "">("");
+
+  /* ----------- упражнения ----------- */
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+
+  /* ----------- приглашения ----------- */
+  const [invite, setInvite] = useState<{ link: string; password: string } | null>(null);
+
+  /* ----------- общая загрузка ----------- */
+  const loadTeacher = useCallback(async () => {
+    const [g, s, ex] = await Promise.all([
+      api.get<Group[]>("/groups").then((r) => r.data),
+      api.get<User[]>("/students").then((r) => r.data),
+      getExercises().then((r) => r.data),
+    ]);
+    setGroups(g);
+    setStudents(s);
+    setExercises(ex);
+  }, []);
+
+  /* загружаем данные */
+  useEffect(() => {
+    loadTeacher().catch(console.error);
+  }, [loadTeacher]);
+
+  /* ----------- группы: создание ----------- */
+  const createGroup = async () => {
+    if (!groupName.trim()) return;
+    await api.post("/groups", { name: groupName });
+    setGroupName("");
+    await loadTeacher();
+  };
+
+  /* ----------- ученики: создание ----------- */
+  const createStudent = async () => {
+    if (!newLogin.trim() || !newPass.trim()) return;
+    await api.post("/students/create", {
+      username: newLogin,
+      password: newPass,
+      group_id: newGroupId || undefined,
+    });
+    setNewLogin("");
+    setNewPass("");
+    setNewGroupId("");
+    setShowCreateSt(false);
+    await loadTeacher();
+  };
+
+  /* ----------- создание приглашения для коллеги ----------- */
+  const createTeacherInvite = async () => {
+    const pwd = prompt("Придумайте пароль для приглашения:");
+    if (!pwd) return;
+    try {
+      const { data } = await api.post<{ link: string; password: string }>("/invites/teacher-link", {
+        password: pwd,
+      });
+      setInvite({ link: data.link, password: data.password });
+    } catch (e: unknown) {
+      const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      alert(msg || "Ошибка создания приглашения");
+    }
+  };
+
+  /* ----------- компонент «InviteLinks» внутри этой же файлы ----------- */
+  const InviteLinks = () => {
+    const [tCode, setTCode] = useState("");
+    const [sCode, setSCode] = useState("");
+
+    const loadCodes = useCallback(async () => {
+      const [t, s] = await Promise.all([
+        api.get<{ invite_code: string }>("/invites/teacher").then((r) => r.data.invite_code),
+        api.get<{ invite_code: string }>("/invites/student").then((r) => r.data.invite_code),
+      ]);
+      setTCode(t);
+      setSCode(s);
+    }, []);
+
+    useEffect(() => {
+      loadCodes().catch(console.error);
+    }, [loadCodes]);
+
+    return (
+      <div className={styles.inviteBlock}>
+        <div style={{ marginBottom: "1rem" }}>
+          Для преподавателей: <span className={styles.code}>{tCode}</span>
+        </div>
+
+        <button className={styles.btn} onClick={createTeacherInvite}>
+          Создать приглашение для коллеги
+        </button>
+
+        {invite && (
+          <div className={styles.inviteBlock} style={{ marginTop: "1rem" }}>
+            <div>
+              Ссылка: <b>{invite.link}</b>
+            </div>
+            <div>
+              Пароль: <b>{invite.password}</b>
+            </div>
+          </div>
+        )}
+
+        <div style={{ marginTop: "1rem" }}>
+          Для учеников: <span className={styles.code}>{sCode}</span>
+        </div>
+      </div>
+    );
+  };
+
+  /* ----------- рендер ----------- */
+  return (
+    <div className={styles.page}>
+      <h2 className={styles.h2}>Преподаватель</h2>
+
+      {/*  УПРАЖНЕНИЯ  */}
+      <h3 className={styles.h3}>Мои упражнения</h3>
+      <ul className={styles.list}>
+        {exercises.map((ex) => (
+          <li key={ex.id}>
+            {ex.name} (попаданий: {ex.max_hits}, время: {ex.time_sec || "∞"} с)
+          </li>
+        ))}
+      </ul>
+      <AddExercise onAdd={loadTeacher} />
+
+      {/*  УЧЕНИКИ  */}
+      <h3 className={styles.h3}>Ученики</h3>
+      {!showCreateSt ? (
+        <button className={styles.btn} onClick={() => setShowCreateSt(true)}>
+          Создать ученика
+        </button>
+      ) : (
+        <div className={styles.inline}>
+          <input
+            className={styles.input}
+            placeholder="Логин"
+            value={newLogin}
+            onChange={(e) => setNewLogin(e.target.value)}
+          />
+          <input
+            className={styles.input}
+            placeholder="Пароль"
+            type="password"
+            value={newPass}
+            onChange={(e) => setNewPass(e.target.value)}
+          />
+          <select
+            className={styles.input}
+            value={newGroupId}
+            onChange={(e) => setNewGroupId(Number(e.target.value) || "")}
+          >
+            <option value="">– без группы –</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+          <button className={styles.btn} onClick={createStudent}>
+            Сохранить
+          </button>
+          <button className={styles.btn} onClick={() => setShowCreateSt(false)}>
+            Отмена
+          </button>
+        </div>
+      )}
+
+      {/*  ГРУППЫ  */}
+      <h3 className={styles.h3}>Мои группы</h3>
+      <ul className={styles.list}>
+        {groups.map((g) => (
+          <li key={g.id}>{g.name}</li>
+        ))}
+      </ul>
+      <input
+        className={styles.input}
+        placeholder="название группы"
+        value={groupName}
+        onChange={(e) => setGroupName(e.target.value)}
+      />
+      <button className={styles.btn} onClick={createGroup}>
+        Создать
+      </button>
+
+      {/*  СПИСОК УЧЕНИКОВ  */}
+      <h3 className={styles.h3}>Список учеников</h3>
+      <ul className={styles.list}>
+        {students.map((s) => (
+          <li key={s.id}>{s.username}</li>
+        ))}
+      </ul>
+
+      <InviteLinks />
+    </div>
+  );
+}
+=== Конец файла: ./frontend/src/pages/TeacherDashboard.tsx ===
+
+=== Файл: ./frontend/src/types.ts ===
+export interface User {
+  id: number;
+  username: string;
+  is_teacher: boolean;
+  created_at: string;
+}
+
+export interface Group {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
+export interface Shooting {
+  exercise_id: number;
+  student_id: number;
+  id: number;
+  exercise: Exercise;
+  note: string;
+  canvas_json: string;
+  photo_url: string;
+  created_at: string;
+  student: User;
+  group?: Group;
+  time_spent: number;
+  hits_count: number;
+}
+
+export interface Exercise {
+  id: number;
+  name: string;
+  target_url: string;
+  max_hits: number;
+  time_sec: number;
+  created_at: string;
+}
+
+
+=== Конец файла: ./frontend/src/types.ts ===
+
+=== Файл: ./frontend/tsconfig.app.json ===
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src"]
+}
+
+=== Конец файла: ./frontend/tsconfig.app.json ===
+
+=== Файл: ./frontend/tsconfig.json ===
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+
+=== Конец файла: ./frontend/tsconfig.json ===
+
+=== Файл: ./frontend/tsconfig.node.json ===
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["vite.config.ts"]
+}
+
+=== Конец файла: ./frontend/tsconfig.node.json ===
+
+=== Файл: ./frontend/vite.config.ts ===
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: { host: "0.0.0.0", port: 5173 }
+})
+=== Конец файла: ./frontend/vite.config.ts ===
+
+=== Файл: ./nginx/nginx.conf ===
+# ./nginx/nginx.conf
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    upstream backend {
+        server backend:8000;
+    }
+
+    server {
+        listen 80;
+        server_name _;
+
+        # Статика фронтенда
+        location / {
+            root /usr/share/nginx/html;
+            try_files $uri $uri/ /index.html;
+        }
+
+        # API → backend
+        location /api {
+            proxy_pass http://backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # Uploads → backend static
+        location /uploads {
+            proxy_pass http://backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # Health-check
+        location /health {
+            proxy_pass http://backend;
+        }
+    }
+}
+=== Конец файла: ./nginx/nginx.conf ===
+
+=== Файл: ./to_text.sh ===
+#!/bin/bash
+
+# Файл для вывода
+OUTPUT_FILE="all_files_content.txt"
+
+# Список исключений (через пробел)
+EXCLUDE_LIST="node_modules .next .git __pycache__ v1 infra backend  *.module.css Readme.md models *.log init tests package-lock.json venv all_files_content.txt venv pnpm-lock.yaml"
+
+# Функция для проверки, нужно ли исключить файл/директорию
+should_exclude() {
+    local item="$1"
+    for pattern in $EXCLUDE_LIST; do
+        if [[ "$item" == $pattern ]]; then
+            return 0  # true - исключить
+        fi
+    done
+    return 1  # false - не исключать
+}
+
+# Очищаем файл вывода
+> "$OUTPUT_FILE"
+
+# Функция для обработки директории
+process_directory() {
+    local dir="$1"
+    
+    for item in "$dir"/*; do
+        # Получаем только имя файла/директории
+        local base_name=$(basename "$item")
+        
+        # Пропускаем текущую и родительскую директории
+        if [[ "$base_name" == "." || "$base_name" == ".." ]]; then
+            continue
+        fi
+        
+        # Проверяем исключения
+        if should_exclude "$base_name"; then
+            echo "Пропускаем: $item" >&2
+            continue
+        fi
+        
+        if [[ -d "$item" ]]; then
+            # Это директория - рекурсивно обрабатываем
+            echo "Обрабатываем директорию: $item" >&2
+            process_directory "$item"
+        elif [[ -f "$item" ]]; then
+            # Это файл - записываем его содержимое
+            echo "Обрабатываем файл: $item" >&2
+            echo "=== Файл: $item ===" >> "$OUTPUT_FILE"
+            
+            # Пытаемся прочитать файл как текст
+            if file "$item" | grep -q "text"; then
+                cat "$item" >> "$OUTPUT_FILE" 2>/dev/null
+            else
+                echo "[Бинарный файл - содержимое не отображается]" >> "$OUTPUT_FILE"
+            fi
+            
+            echo -e "\n=== Конец файла: $item ===\n" >> "$OUTPUT_FILE"
+        fi
+    done
+}
+
+# Запускаем обработку с текущей директории
+echo "Начинаем обработку файлов..."
+process_directory "."
+
+echo "Готово! Все файлы записаны в: $OUTPUT_FILE"
+=== Конец файла: ./to_text.sh ===
+

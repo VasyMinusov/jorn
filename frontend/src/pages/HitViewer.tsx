@@ -64,7 +64,6 @@ export default function HitViewer({
   useEffect(() => {
     const updateTargetSize = () => {
       if (containerRef.current) {
-        const containerWidth = containerRef.current.clientWidth;
         const containerHeight = containerRef.current.clientHeight;
         
         const targetHeight = Math.min(containerHeight * 0.9, 800);

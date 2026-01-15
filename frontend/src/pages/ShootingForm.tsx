@@ -599,7 +599,7 @@ export default function ShootingForm() {
                     Очистить все
                   </button>
                 )}
-                {process.env.NODE_ENV === 'development' && (
+                {import.meta.env.DEV && (
                   <button 
                     className={styles.debugToggle}
                     onClick={() => setDebugMode(!debugMode)}
